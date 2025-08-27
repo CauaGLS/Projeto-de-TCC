@@ -1,0 +1,22 @@
+name: controle_de_financas
+
+services:
+   db:
+     image: postgres
+     ports:
+       - "5432:5432"
+     env_file:
+       - ./.env
+     volumes:
+       - ./docker/db:/var/lib/postgresql/data
+     networks:
+       - controle_de_financas
+     healthcheck:
+       test: ["CMD-SHELL", "pg_isready -U postgres"]
+       interval: 2s
+       timeout: 2s
+       retries: 10
+
+
+networks:
+  controle_de_financas:

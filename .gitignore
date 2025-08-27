@@ -1,0 +1,27 @@
+
+# Ambiente virtual do Python
+venv/
+.env/
+
+# Arquivos de cache do Python
+__pycache__/
+*.py[cod]
+
+# Arquivos do VS Code
+.vscode/
+
+# Dependências do Node.js
+node_modules/
+
+# Arquivos de log
+*.log
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+docker/
+**/.env/
+
+copiar-env.ps1
+.env
