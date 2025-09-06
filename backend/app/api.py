@@ -1,38 +1,51 @@
-from ninja import Router
-from .models import Finances
 from django.shortcuts import get_object_or_404
-from .schemas import FinanceSchema, FinanceCreateSchema
+from ninja import Router, PatchDict
+from typing import List
 
-router = Router()
+from .models import Finance
+from .schemas import CreateFinanceSchema, FinanceSchema, DetailFinanceSchema
+from .types import FinanceType
 
-@router.get("/finances", response=list[FinanceSchema])
-def list_finances(request):
-    return Finances.objects.selected_related("created_by").all()
+router = Router(tags=["Finances"])
 
+# Listar todos os registros
+@router.get("/finances", response=List[FinanceSchema])
+def get_finances(request):
+    return Finance.objects.select_related("created_by").all()
 
-@router.get("/finances/{finance_id}", response=FinanceSchema)
-def get_finance(request, finance_id: int):
-    finance = get_object_or_404(Finances.objects.selected_related("created_by"), id=finance_id)
-    return finance
-
-
+# Criar novo registro
 @router.post("/finances", response=FinanceSchema)
-def create_finance(request, data: FinanceCreateSchema):
-    finance = Finances.objects.create(**data.dict(), created_by=request.auth)
-    return finance
+def create_finance(request, finance: CreateFinanceSchema):
+    payload = finance.dict()
+    return Finance.objects.create(**payload, created_by=request.auth)
 
+# Detalhar registro por ID
+@router.get("/finances/{finance_id}", response=DetailFinanceSchema)
+def get_finance(request, finance_id: int):
+    return get_object_or_404(Finance, id=finance_id)
 
+# Atualizar registro
 @router.put("/finances/{finance_id}", response=FinanceSchema)
-def update_finance(request, finance_id: int, data: FinanceSchema):
-    finance = get_object_or_404(Finances, id=finance_id)
-    for attr, value in data.dict().items():
+def update_finance(request, finance_id: int, payload: PatchDict[CreateFinanceSchema]):
+    finance = get_object_or_404(Finance, id=finance_id)
+    for attr, value in payload.items():
         setattr(finance, attr, value)
     finance.save()
     return finance
 
-
+# Excluir registro (remoção definitiva, sem arquivar)
 @router.delete("/finances/{finance_id}", response={204: None})
 def delete_finance(request, finance_id: int):
-    finance = get_object_or_404(Finances, id=finance_id)
+    finance = get_object_or_404(Finance, id=finance_id)
     finance.delete()
-    return 204
+    return 204, None
+
+# Filtro por tipo (opcional, mas útil para relatórios)
+@router.get("/finances/type/{finance_type}", response=List[FinanceSchema])
+def get_finances_by_type(request, finance_type: FinanceType):
+    return Finance.objects.filter(type=finance_type).select_related("created_by")
+
+# Filtro por categoria (também opcional)
+@router.get("/finances/category/{category}", response=List[FinanceSchema])
+def get_finances_by_category(request, category: str):
+    return Finance.objects.filter(category=category).select_related("created_by")

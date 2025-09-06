@@ -1,5 +1,6 @@
-from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser
+from .types import FinanceType, FinanceStatus
 
 
 class User(AbstractBaseUser):
@@ -71,14 +72,36 @@ class Verification(models.Model):
         db_table = "verifications"
 
 
-class Finances(models.Model):
-    id = models.AutoField(primary_key=True)
+
+class Finance(models.Model):
     title = models.CharField(max_length=50)
-    value = models.FloatField()
+    description = models.CharField(max_length=100, blank=True, null=True)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField()
     category = models.CharField(max_length=45)
-    type = models.CharField(max_length=10)
-    status = models.CharField(max_length=10)
-    description = models.TextField(max_length=100, null=True)
+    type = models.CharField(
+        max_length=10,
+        choices=[(t.value, t.value) for t in FinanceType]
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=[(s.value, s.value) for s in FinanceStatus],
+        default=FinanceStatus.PENDING
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.title} - {self.value}"
+
+    class Meta:
+        db_table = "finances"
+        verbose_name = "finance"
+        verbose_name_plural = "finances"
+        ordering = ["-date", "created_at"]
+        indexes = [
+            models.Index(fields=["type", "category"]),
+            models.Index(fields=["date"]),
+        ]

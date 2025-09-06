@@ -1,7 +1,8 @@
-from django.contrib.auth.models import User
+from app.models import User
 from ninja import ModelSchema
 
 class UserSchema(ModelSchema):
-    class Config:
+    id: str
+    class Meta:
         model = User
-        model_fields = "__all__"
+        fields = ["id", "name", "email", "image"]

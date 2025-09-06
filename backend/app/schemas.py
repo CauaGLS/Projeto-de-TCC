@@ -1,20 +1,35 @@
-from ninja import Schema, ModelSchema
-from .models import Finances
+from datetime import date
+from ninja import ModelSchema, Schema
+from typing import Optional
+from .models import Finance
+from .types import FinanceType, FinanceStatus
 from core.schemas import UserSchema
 
-
 class FinanceSchema(ModelSchema):
+    id: int
     created_by: UserSchema
+    type: FinanceType
+    status: FinanceStatus
 
     class Config:
-        model = Finances
+        model = Finance
         model_fields = "__all__"
 
-class FinanceCreateSchema(Schema):
+class DetailFinanceSchema(ModelSchema):
+    id: int
+    created_by: UserSchema
+    type: FinanceType
+    status: FinanceStatus
+
+    class Config:
+        model = Finance
+        model_fields = "__all__"
+
+class CreateFinanceSchema(Schema):
     title: str
+    description: Optional[str] = None
     value: float
-    date: str
+    date: date
     category: str
-    type: str
-    status: str
-    description: str | None = None
+    type: FinanceType = FinanceType.EXPENSE
+    status: FinanceStatus = FinanceStatus.PENDING
