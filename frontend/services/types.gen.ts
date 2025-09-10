@@ -4,7 +4,8 @@ export type CreateFinanceSchema = {
     title: string;
     description?: (string | null);
     value: number;
-    date: string;
+    payment_date?: (string | null);
+    due_date?: (string | null);
     category: string;
     type?: (FinanceType);
     status?: (FinanceStatus);
@@ -14,7 +15,8 @@ export type CreateFinanceSchemaPatch = {
     title?: (string | null);
     description?: (string | null);
     value?: (number | null);
-    date?: (string | null);
+    payment_date?: (string | null);
+    due_date?: (string | null);
     category?: (string | null);
     type?: (FinanceType | null);
     status?: (FinanceStatus | null);
@@ -25,10 +27,11 @@ export type DetailFinanceSchema = {
     created_by: UserSchema;
     type: FinanceType;
     status: FinanceStatus;
+    due_date: (string | null);
     title: string;
     description?: (string | null);
     value: (number | string);
-    date: string;
+    payment_date?: (string | null);
     category: string;
     created_at: string;
     updated_at: string;
@@ -39,20 +42,22 @@ export type FinanceSchema = {
     created_by: UserSchema;
     type: FinanceType;
     status: FinanceStatus;
+    due_date: (string | null);
     title: string;
     description?: (string | null);
     value: (number | string);
-    date: string;
+    payment_date?: (string | null);
     category: string;
     created_at: string;
     updated_at: string;
 };
 
-export type FinanceStatus = 'Pendente' | 'Pago';
+export type FinanceStatus = 'Pendente' | 'Pago' | 'Atrasada';
 
 export const FinanceStatus = {
     PENDENTE: 'Pendente',
-    PAGO: 'Pago'
+    PAGO: 'Pago',
+    ATRASADA: 'Atrasada'
 } as const;
 
 export type FinanceType = 'Receita' | 'Despesa';

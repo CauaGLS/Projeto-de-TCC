@@ -7,3 +7,4 @@ class FinanceType(str, Enum):
 class FinanceStatus(str, Enum):
     PENDING = "Pendente"
     PAID = "Pago"
+    OVERDUE = "Atrasada"

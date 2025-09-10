@@ -9,38 +9,34 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useFinances } from "@/hooks/useFinances"
 import { FinanceCreateCard } from "@/components/finance-create-card"
 import { useDeleteFinance } from "@/hooks/useDeleteFinance"
-import { useUpdateFinance } from "@/hooks/useUpdateFinance"
+import { useFinanceCreate } from "@/hooks/useFinanceCreate"
+import { schema } from "@/components/data-table"
+import { z } from "zod"
 
-// importe o tipo correto do SDK do heyapi
 import type { FinanceSchema as ApiFinance } from "@/services/types.gen"
 
-type FinanceRow = {
-  id: number
-  titulo: string
-  valor: number
-  tipo: string
-  categoria: string
-  status: string
-}
+type FinanceRow = z.infer<typeof schema>
+
 
 export default function Page() {
   const { data, isLoading, isError } = useFinances()
   const { mutate: deleteFinance } = useDeleteFinance()
-  const [showCreate, setShowCreate] = useState(false)
+  const { showCreate, setShowCreate } = useFinanceCreate()
   const [editing, setEditing] = useState<ApiFinance | null>(null)
 
-  // transforma API → rows que a tabela espera
-  const rows: FinanceRow[] = useMemo(() => {
-    if (!data) return []
-    return data.map((f) => ({
-      id: Number(f.id),
-      titulo: f.title,
-      tipo: f.type,
-      status: f.status,
-      valor: typeof f.value === "number" ? f.value : parseFloat(String(f.value)),
-      categoria: f.category,
-    }))
-  }, [data])
+const rows: FinanceRow[] = useMemo(() => {
+  if (!data) return []
+  return data.map((f) => ({
+    id: Number(f.id),
+    title: f.title,
+    type: f.type,
+    status: f.status,
+    value: typeof f.value === "number" ? f.value : parseFloat(String(f.value)),
+    category: f.category,
+    due_date: f.due_date ?? null,
+    payment_date: f.payment_date ?? null,
+  }))
+}, [data])
 
   return (
     <SidebarProvider
@@ -57,7 +53,6 @@ export default function Page() {
 
         {showCreate && <FinanceCreateCard onClose={() => setShowCreate(false)} />}
 
-        {/* quando editar, passamos o objeto da API (ApiFinance) */}
         {editing && (
           <FinanceCreateCard
             finance={editing}
@@ -72,21 +67,15 @@ export default function Page() {
               {isError && (
                 <div className="px-4 text-red-500">Erro ao carregar registros.</div>
               )}
-
               <DataTable
                 data={rows}
                 onAddClick={() => setShowCreate(true)}
                 onEditClick={(row) => {
-                  // row: FinanceRow — precisamos obter o objeto completo da API
                   const found = data?.find((f) => Number(f.id) === row.id) ?? null
                   setEditing(found as ApiFinance | null)
                 }}
-                onDeleteClick={(id) => {
-                  // seu hook pode esperar apenas o id; se o hook exigir { financeId } ajuste aqui
-                  deleteFinance(id)
-                }}
+                onDeleteClick={(id) => deleteFinance(id)}
               />
-
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
+import { FinanceCreateProvider } from "@/hooks/useFinanceCreate"
 
 import { Providers } from "@/components/providers";
 
@@ -29,7 +29,11 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR" data-lt-installed="true" suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <FinanceCreateProvider>
+            {children}
+          </FinanceCreateProvider>
+        </Providers>
       </body>
     </html>
   );

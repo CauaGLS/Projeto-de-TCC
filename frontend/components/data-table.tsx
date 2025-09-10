@@ -24,13 +24,9 @@ import {
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
   IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
 } from "@tabler/icons-react"
 import {
@@ -50,7 +46,6 @@ import {
 } from "@tanstack/react-table"
 import { z } from "zod"
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -77,17 +72,17 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 
-// Schema de finanças
 export const schema = z.object({
   id: z.number(),
-  titulo: z.string(),
-  tipo: z.string(),
+  title: z.string(),
+  type: z.string(),
   status: z.string(),
-  valor: z.number(),
-  categoria: z.string(),
+  value: z.coerce.number(),
+  category: z.string(),
+  due_date: z.string().nullable().optional(),
+  payment_date: z.string().nullable().optional(),
 })
 
-// Botão de drag
 function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({ id })
 
@@ -105,11 +100,16 @@ function DragHandle({ id }: { id: number }) {
   )
 }
 
-// Colunas da tabela de finanças
 const getColumns = (
   onEditClick?: (finance: z.infer<typeof schema>) => void,
   onDeleteClick?: (id: number) => void
 ): ColumnDef<z.infer<typeof schema>>[] => [
+  {
+    accessorKey: "id",
+    header: "ID",
+    enableHiding: true,
+    enableSorting: true,
+  },
   {
     id: "drag",
     header: () => null,
@@ -142,106 +142,159 @@ const getColumns = (
     enableHiding: false,
   },
   {
-    accessorKey: "titulo",
+    id: "titulo",
+    accessorKey: "title",
     header: "Título",
-    cell: ({ row }) => row.original.titulo,
+    cell: ({ row }) => row.original.title,
   },
   {
-    accessorKey: "tipo",
+    id: "tipo",
+    accessorKey: "type",
     header: "Tipo",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.tipo}
+        {row.original.type}
       </Badge>
     ),
   },
   {
+    id: "status",
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status
-      
-      // Definir variante e cor com base no status
+
       let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
       let className = "px-1.5 flex gap-1 items-center"
-      
+
       if (status === "Pago") {
         variant = "default"
         className += " bg-green-500 hover:bg-green-600 text-white"
       } else if (status === "Pendente") {
         variant = "secondary"
         className += " bg-yellow-500 hover:bg-yellow-600 text-white"
+      } else if (status === "Atrasada") {
+        variant = "destructive"
+        className += " bg-red-500 hover:bg-red-600 text-white"
       }
-      
+
       return (
         <Badge variant={variant} className={className}>
-          {status === "Pago"}
-          {status === "Pendente"}
           {status}
         </Badge>
       )
-    }
+    },
   },
   {
-    accessorKey: "valor",
+    id: "Data Pagamento",
+    accessorKey: "payment_date",
+    header: "Data de Pagamento",
+    cell: ({ row }) => (
+      <div className="text-center">
+        {row.original.payment_date
+          ? new Date(row.original.payment_date).toLocaleDateString("pt-BR")
+          : <span className="text-muted-foreground">-</span>}
+      </div>
+    ),
+  },
+  {
+    id: "Data Vencimento",
+    accessorKey: "due_date",
+    header: "Data de Vencimento",
+    cell: ({ row }) => (
+      <div className="text-center">
+        {row.original.due_date
+          ? new Date(row.original.due_date).toLocaleDateString("pt-BR")
+          : <span className="text-muted-foreground">-</span>}
+      </div>
+    ),
+  },
+  {
+    id: "valor",
+    accessorKey: "value",
     header: () => <div className="w-full text-right">Valor</div>,
     cell: ({ row }) => {
-      const tipo = row.original.tipo
-      const valor = row.original.valor
-      
-      // Definir cor com base no tipo
-      let textColor = "text-gray-900 dark:text-gray-100" // padrão
-      
+      const tipo = row.original.type
+      const valor = row.original.value
+
+      let textColor = "text-gray-900 dark:text-gray-100"
       if (tipo === "Despesa") {
         textColor = "text-red-600 dark:text-red-400"
       } else if (tipo === "Receita") {
         textColor = "text-green-600 dark:text-green-400"
       }
-      
+
       return (
         <div className={`text-right font-medium ${textColor}`}>
-          R$ {valor.toFixed(2)}
+          {new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(Number(valor ?? 0))}
         </div>
       )
     },
   },
   {
-    accessorKey: "categoria",
+    id: "categoria",
+    accessorKey: "category",
     header: "Categoria",
-    cell: ({ row }) => row.original.categoria,
+    cell: ({ row }) => row.original.category,
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Abrir menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem onClick={() => onEditClick?.(row.original)}>
-            Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Detalhes
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onDeleteClick?.(row.original.id)} variant="destructive">
-            Deletar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row, table }) => {
+      const selectedRows = table.getFilteredSelectedRowModel().rows
+      const multipleSelected = selectedRows.length > 1
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Abrir menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={() => !multipleSelected && onEditClick?.(row.original)}
+              disabled={multipleSelected}
+            >
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem>Detalhes</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                if (multipleSelected) {
+                  selectedRows.forEach((r) =>
+                    onDeleteClick?.(r.original.id)
+                  )
+                } else {
+                  onDeleteClick?.(row.original.id)
+                }
+              }}
+            >
+              {multipleSelected ? "Excluir selecionados" : "Excluir"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
   },
 ]
 
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
+function DraggableRow({
+  row,
+  onEditClick,
+}: {
+  row: Row<z.infer<typeof schema>>
+  onEditClick?: (finance: z.infer<typeof schema>) => void
+}) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   })
@@ -251,10 +304,21 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
       data-state={row.getIsSelected() && "selected"}
       data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80 cursor-pointer"
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition,
+      }}
+      onClick={(e) => {
+        const target = e.target as HTMLElement
+        if (
+          target.closest("button") ||
+          target.closest("a") ||
+          target.closest("[role=menuitem]")
+        ) {
+          return
+        }
+        onEditClick?.(row.original)
       }}
     >
       {row.getVisibleCells().map((cell) => (
@@ -282,15 +346,16 @@ export function DataTable({
 
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [sorting, setSorting] = React.useState<SortingState>([])
+    React.useState<VisibilityState>({ id: false })
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "id", desc: true },
+  ])
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   })
+
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -420,7 +485,11 @@ export function DataTable({
                     strategy={verticalListSortingStrategy}
                   >
                     {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+                      <DraggableRow
+                        key={row.id}
+                        row={row}
+                        onEditClick={onEditClick}
+                      />
                     ))}
                   </SortableContext>
                 ) : (

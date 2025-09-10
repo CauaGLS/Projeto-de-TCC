@@ -1,6 +1,7 @@
 "use client"
 
 import { IconCirclePlusFilled, IconCashBanknoteOff, type Icon } from "@tabler/icons-react"
+import { useFinanceCreate } from "@/hooks/useFinanceCreate"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,8 @@ export function NavMain({
     icon?: Icon
   }[]
 }) {
+  const { setShowCreate } = useFinanceCreate()
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -27,6 +30,7 @@ export function NavMain({
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Criação Rápida"
+              onClick={() => setShowCreate(true)}
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <IconCirclePlusFilled />

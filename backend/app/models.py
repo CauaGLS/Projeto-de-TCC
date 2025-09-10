@@ -77,14 +77,15 @@ class Finance(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100, blank=True, null=True)
     value = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField()
+    payment_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True)
     category = models.CharField(max_length=45)
     type = models.CharField(
         max_length=10,
         choices=[(t.value, t.value) for t in FinanceType]
     )
     status = models.CharField(
-        max_length=10,
+        max_length=15,
         choices=[(s.value, s.value) for s in FinanceStatus],
         default=FinanceStatus.PENDING
     )
@@ -93,15 +94,21 @@ class Finance(models.Model):
 
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.title} - {self.value}"
+    def save(self, *args, **kwargs):
+        from datetime import date
+
+        if self.status == FinanceStatus.PENDING:
+            self.payment_date = None
+
+        if (
+            self.due_date
+            and self.due_date < date.today()
+            and self.status not in [FinanceStatus.PAID, FinanceStatus.OVERDUE]
+        ):
+            self.status = FinanceStatus.OVERDUE
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "finances"
-        verbose_name = "finance"
-        verbose_name_plural = "finances"
-        ordering = ["-date", "created_at"]
-        indexes = [
-            models.Index(fields=["type", "category"]),
-            models.Index(fields=["date"]),
-        ]
+        ordering = ["-payment_date", "created_at"]
+

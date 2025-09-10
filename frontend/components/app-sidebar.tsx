@@ -4,9 +4,7 @@ import * as React from "react"
 import {
   IconChartHistogram,
   IconBusinessplan,
-  IconHelp,
   IconInnerShadowTop,
-  IconSearch,
   IconSettings,
   IconUsers,
 } from "@tabler/icons-react"
@@ -23,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import logo from "@/public/logo.png"
 
 const data = {
   user: {
@@ -79,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

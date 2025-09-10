@@ -10,6 +10,7 @@ class FinanceSchema(ModelSchema):
     created_by: UserSchema
     type: FinanceType
     status: FinanceStatus
+    due_date: Optional[date]
 
     class Config:
         model = Finance
@@ -20,6 +21,7 @@ class DetailFinanceSchema(ModelSchema):
     created_by: UserSchema
     type: FinanceType
     status: FinanceStatus
+    due_date: Optional[date]
 
     class Config:
         model = Finance
@@ -29,7 +31,8 @@ class CreateFinanceSchema(Schema):
     title: str
     description: Optional[str] = None
     value: float
-    date: date
+    payment_date: Optional[date] = None
+    due_date: Optional[date] = None
     category: str
     type: FinanceType = FinanceType.EXPENSE
     status: FinanceStatus = FinanceStatus.PENDING
