@@ -2,11 +2,15 @@ from django.shortcuts import get_object_or_404
 from ninja import Router, PatchDict
 from typing import List
 
-from .models import Finance
-from .schemas import CreateFinanceSchema, FinanceSchema, DetailFinanceSchema
+from .models import Finance, SpendingLimit
+from .schemas import CreateFinanceSchema, FinanceSchema, DetailFinanceSchema, CreateOrUpdateSpendingLimitSchema, SpendingLimitSchema
 from .types import FinanceType
 
 router = Router(tags=["Finances"])
+
+
+
+#==============Finanças=================
 
 # Listar todos os registros
 @router.get("/finances", response=List[FinanceSchema])
@@ -49,3 +53,25 @@ def get_finances_by_type(request, finance_type: FinanceType):
 @router.get("/finances/category/{category}", response=List[FinanceSchema])
 def get_finances_by_category(request, category: str):
     return Finance.objects.filter(category=category).select_related("created_by")
+
+
+
+#==============Limites de Gastos=================
+
+# Obter limite atual do usuário
+@router.get("/spending-limit", response=SpendingLimitSchema)
+def get_spending_limit(request):
+    limit, created = SpendingLimit.objects.get_or_create(
+        user=request.auth,
+        defaults={"value": 1000.00}
+    )
+    return limit
+
+# Definir ou atualizar limite
+@router.post("/spending-limit", response=SpendingLimitSchema)
+def set_spending_limit(request, payload: CreateOrUpdateSpendingLimitSchema):
+    limit, created = SpendingLimit.objects.update_or_create(
+        user=request.auth,
+        defaults={"value": payload.value}
+    )
+    return limit

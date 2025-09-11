@@ -2,6 +2,7 @@
 
 import { IconCirclePlusFilled, IconCashBanknoteOff, type Icon } from "@tabler/icons-react"
 import { useFinanceCreate } from "@/hooks/useFinanceCreate"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+
+import { SpendingLimitCard } from "./SpendingLimitCard"
 
 export function NavMain({
   items,
@@ -22,6 +25,7 @@ export function NavMain({
   }[]
 }) {
   const { setShowCreate } = useFinanceCreate()
+  const [showLimit, setShowLimit] = useState(false)
 
   return (
     <SidebarGroup>
@@ -40,12 +44,14 @@ export function NavMain({
               size="icon"
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
+              onClick={() => setShowLimit(true)}
             >
               <IconCashBanknoteOff />
               <span className="sr-only">Definir Limite de Gastos</span>
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>
+
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
@@ -57,6 +63,8 @@ export function NavMain({
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
+
+      {showLimit && <SpendingLimitCard onClose={() => setShowLimit(false)} />}
     </SidebarGroup>
   )
 }

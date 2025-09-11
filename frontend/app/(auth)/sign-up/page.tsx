@@ -1,7 +1,7 @@
 import Logo from "@/public/logo.svg";
 import Image from "next/image";
 
-import { SignInPage } from "@/components/sign-in-form";
+import SignUpPage from "@/components/sign-up-form";
 
 export default function LoginPage() {
   return (
@@ -10,7 +10,7 @@ export default function LoginPage() {
         <a href="#" className="flex items-center gap-2 self-center font-medium">
           <Image src={Logo} alt="Logo" width={42} height={42} />
         </a>
-        <SignInPage />
+        <SignUpPage />
       </div>
     </div>
   );

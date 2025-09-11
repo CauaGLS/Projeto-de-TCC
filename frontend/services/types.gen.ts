@@ -22,6 +22,10 @@ export type CreateFinanceSchemaPatch = {
     status?: (FinanceStatus | null);
 };
 
+export type CreateOrUpdateSpendingLimitSchema = {
+    value: number;
+};
+
 export type DetailFinanceSchema = {
     id: number;
     created_by: UserSchema;
@@ -66,6 +70,14 @@ export const FinanceType = {
     RECEITA: 'Receita',
     DESPESA: 'Despesa'
 } as const;
+
+export type SpendingLimitSchema = {
+    id?: (number | null);
+    user: string;
+    value?: (number | string);
+    created_at: string;
+    updated_at: string;
+};
 
 export type UserSchema = {
     id: string;
@@ -112,3 +124,11 @@ export type GetFinancesByCategoryData = {
 };
 
 export type GetFinancesByCategoryResponse = (Array<FinanceSchema>);
+
+export type GetSpendingLimitResponse = (SpendingLimitSchema);
+
+export type SetSpendingLimitData = {
+    requestBody: CreateOrUpdateSpendingLimitSchema;
+};
+
+export type SetSpendingLimitResponse = (SpendingLimitSchema);

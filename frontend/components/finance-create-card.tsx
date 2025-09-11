@@ -168,6 +168,11 @@ export function FinanceCreateCard({
     }
   }
 
+  function parseLocalDate(dateStr: string): Date {
+    const [year, month, day] = dateStr.split("-").map(Number)
+    return new Date(year, month - 1, day)
+  }
+
   const [calendarOpen, setCalendarOpen] = useState<{
     payment_date: boolean
     due_date: boolean
@@ -194,19 +199,27 @@ export function FinanceCreateCard({
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {form[field]
-              ? format(new Date(form[field] as string), "dd/MM/yyyy", { locale: ptBR })
+              ? format(parseLocalDate(form[field] as string), "dd/MM/yyyy", { locale: ptBR })
               : "Selecione uma data"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={form[field] ? new Date(form[field] as string) : undefined}
+            selected={form[field] ? parseLocalDate(form[field] as string) : undefined}
             onSelect={(date) => {
-              setForm((prev) => ({
-                ...prev,
-                [field]: date ? format(date, "yyyy-MM-dd") : null,
-              }))
+              if (date) {
+                const year = date.getFullYear()
+                const month = String(date.getMonth() + 1).padStart(2, "0")
+                const day = String(date.getDate()).padStart(2, "0")
+
+                setForm((prev) => ({
+                  ...prev,
+                  [field]: `${year}-${month}-${day}`,
+                }))
+              } else {
+                setForm((prev) => ({ ...prev, [field]: null }))
+              }
               setCalendarOpen((prev) => ({ ...prev, [field]: false }))
             }}
             initialFocus

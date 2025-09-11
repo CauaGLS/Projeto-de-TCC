@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { FinanceChart } from "@/components/finance-chart"
 import { DataTable } from "@/components/data-table"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -77,7 +77,7 @@ const rows: FinanceRow[] = useMemo(() => {
                 onDeleteClick={(id) => deleteFinance(id)}
               />
               <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
+                <FinanceChart />
               </div>
             </div>
           </div>

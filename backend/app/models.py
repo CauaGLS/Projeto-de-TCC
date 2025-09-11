@@ -72,7 +72,6 @@ class Verification(models.Model):
         db_table = "verifications"
 
 
-
 class Finance(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100, blank=True, null=True)
@@ -111,4 +110,20 @@ class Finance(models.Model):
     class Meta:
         db_table = "finances"
         ordering = ["-payment_date", "created_at"]
+
+
+# models.py
+
+class SpendingLimit(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="spending_limit")
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "spending_limits"
+
+    def __str__(self):
+        return f"Limite de {self.user.email}: {self.value}"
 
