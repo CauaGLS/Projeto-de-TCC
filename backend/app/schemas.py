@@ -29,7 +29,6 @@ class DetailFinanceSchema(ModelSchema):
 
 class CreateFinanceSchema(Schema):
     title: str
-    description: Optional[str] = None
     value: float
     payment_date: Optional[date] = None
     due_date: Optional[date] = None

@@ -2,7 +2,6 @@
 
 export type CreateFinanceSchema = {
     title: string;
-    description?: (string | null);
     value: number;
     payment_date?: (string | null);
     due_date?: (string | null);
@@ -13,7 +12,6 @@ export type CreateFinanceSchema = {
 
 export type CreateFinanceSchemaPatch = {
     title?: (string | null);
-    description?: (string | null);
     value?: (number | null);
     payment_date?: (string | null);
     due_date?: (string | null);
@@ -33,7 +31,6 @@ export type DetailFinanceSchema = {
     status: FinanceStatus;
     due_date: (string | null);
     title: string;
-    description?: (string | null);
     value: (number | string);
     payment_date?: (string | null);
     category: string;
@@ -48,7 +45,6 @@ export type FinanceSchema = {
     status: FinanceStatus;
     due_date: (string | null);
     title: string;
-    description?: (string | null);
     value: (number | string);
     payment_date?: (string | null);
     category: string;

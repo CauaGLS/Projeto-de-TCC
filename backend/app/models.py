@@ -74,7 +74,6 @@ class Verification(models.Model):
 
 class Finance(models.Model):
     title = models.CharField(max_length=50)
-    description = models.CharField(max_length=100, blank=True, null=True)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(blank=True, null=True)
     due_date = models.DateField(blank=True, null=True)
