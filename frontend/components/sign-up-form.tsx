@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { authClient, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
-export default function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

@@ -5,8 +5,9 @@ from typing import List
 from .models import Finance, SpendingLimit
 from .schemas import CreateFinanceSchema, FinanceSchema, DetailFinanceSchema, CreateOrUpdateSpendingLimitSchema, SpendingLimitSchema
 from .types import FinanceType
+from core.auth import AuthBearer
 
-router = Router(tags=["Finances"])
+router = Router(tags=["Finances"], auth=AuthBearer())
 
 
 

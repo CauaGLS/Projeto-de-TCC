@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { authClient, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
-export function SignInPage({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+export function SignInForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,22 +23,20 @@ export function SignInPage({ className, ...props }: React.ComponentPropsWithoutR
     setLoading(true);
     setError(null);
 
-    // sign in with email/password
     const { data, error: signinError } = await authClient.signIn.email({
       email,
       password,
       rememberMe: true,
+      callbackURL: window.location.pathname,
     });
 
     setLoading(false);
 
     if (signinError) {
-      // melhor tratar e mostrar mensagens amigáveis
       setError(signinError.message || "Erro ao autenticar");
       return;
     }
 
-    // sucesso: redireciona (ou use fetchOptions:onSuccess)
     router.push("/");
   }
 
@@ -56,7 +54,7 @@ export function SignInPage({ className, ...props }: React.ComponentPropsWithoutR
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn.social({ provider: "google" })}
+                  onClick={() => signIn.social({ provider: "google", callbackURL: window.location.pathname })}
                 >
                   <GoogleIcon />
                   Entrar com Google
