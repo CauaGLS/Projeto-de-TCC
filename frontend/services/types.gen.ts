@@ -30,12 +30,12 @@ export type DetailFinanceSchema = {
     type: FinanceType;
     status: FinanceStatus;
     due_date: (string | null);
-    title: string;
-    value: (number | string);
-    payment_date?: (string | null);
-    category: string;
+    payment_date: (string | null);
     created_at: string;
     updated_at: string;
+    title: string;
+    value: (number | string);
+    category: string;
 };
 
 export type FinanceSchema = {
@@ -44,12 +44,12 @@ export type FinanceSchema = {
     type: FinanceType;
     status: FinanceStatus;
     due_date: (string | null);
-    title: string;
-    value: (number | string);
-    payment_date?: (string | null);
-    category: string;
+    payment_date: (string | null);
     created_at: string;
     updated_at: string;
+    title: string;
+    value: (number | string);
+    category: string;
 };
 
 export type FinanceStatus = 'Pendente' | 'Pago' | 'Atrasada';
@@ -68,9 +68,9 @@ export const FinanceType = {
 } as const;
 
 export type SpendingLimitSchema = {
-    id?: (number | null);
-    user: string;
-    value?: (number | string);
+    id: number;
+    user: UserSchema;
+    value: number;
     created_at: string;
     updated_at: string;
 };

@@ -1,10 +1,22 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
+import { Resend } from "resend";
+import { render } from "@react-email/render";
+
+import { ForgotPasswordEmail } from "@/components/email/forgot-password-email";
 
 export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    sendResetPassword: async ({ user, url, token }, request) => {
+      await new Resend(process.env.RESEND_API_KEY).emails.send({
+        from: `Projeto TCC <${process.env.RESEND_FROM_EMAIL}>`,
+        to: [user.email],
+        subject: "Redefinir sua senha",
+        react: await ForgotPasswordEmail({ user, url, token }),
+      });
+    },
   },
   socialProviders: {
     google: {
@@ -12,7 +24,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  // Database
+  trustedOrigins: [process.env.NEXT_PUBLIC_FRONTEND_URL as string],
   database: new Pool({
     host: process.env.POSTGRES_HOST,
     port: process.env.POSTGRES_PORT as number | undefined,

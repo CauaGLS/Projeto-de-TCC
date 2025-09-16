@@ -1,4 +1,5 @@
-from datetime import date
+# app/schemas.py
+from datetime import date, datetime
 from ninja import ModelSchema, Schema
 from typing import Optional
 from .models import Finance, SpendingLimit
@@ -11,6 +12,9 @@ class FinanceSchema(ModelSchema):
     type: FinanceType
     status: FinanceStatus
     due_date: Optional[date]
+    payment_date: Optional[date]
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         model = Finance
@@ -22,6 +26,9 @@ class DetailFinanceSchema(ModelSchema):
     type: FinanceType
     status: FinanceStatus
     due_date: Optional[date]
+    payment_date: Optional[date]
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         model = Finance
@@ -37,9 +44,15 @@ class CreateFinanceSchema(Schema):
     status: FinanceStatus = FinanceStatus.PENDING
 
 class SpendingLimitSchema(ModelSchema):
+    id: int
+    user: UserSchema
+    value: float
+    created_at: datetime
+    updated_at: datetime
+
     class Config:
         model = SpendingLimit
-        model_fields = ["id", "user", "value", "created_at", "updated_at"]
+        model_fields = "__all__"
 
 class CreateOrUpdateSpendingLimitSchema(Schema):
     value: float

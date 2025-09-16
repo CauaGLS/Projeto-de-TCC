@@ -84,7 +84,7 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
                   <div className="flex items-center">
                     <Label htmlFor="password">Senha</Label>
                     <a
-                      href="#"
+                      href="/forgot-password"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
                     >
                       Esqueceu sua senha?

@@ -36,7 +36,6 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
       return;
     }
 
-    // autoSignIn já cuida do login automático após cadastro
     router.push("/");
   }
 
@@ -49,7 +48,6 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
         <CardContent aria-describedby="">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
-              {/* Botão social */}
               <div className="flex flex-col gap-2">
                 <Button
                   type="button"
@@ -62,14 +60,12 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 </Button>
               </div>
 
-              {/* Divider */}
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                 <span className="relative z-10 bg-background px-2 text-muted-foreground">
                   Ou continue com
                 </span>
               </div>
 
-              {/* Campos */}
               <div className="grid gap-6">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Nome</Label>
