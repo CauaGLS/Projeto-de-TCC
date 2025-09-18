@@ -41,7 +41,6 @@ export function FinanceCreateCard({
 
   const [form, setForm] = useState<FormData>({
     title: "",
-    description: "",
     value: 0,
     payment_date: null,
     due_date: null,
@@ -58,7 +57,6 @@ export function FinanceCreateCard({
       const value = Number(finance.value)
       setForm({
         title: finance.title,
-        description: finance.description ?? "",
         value: value,
         payment_date: finance.payment_date ?? null,
         due_date: finance.due_date ?? null,

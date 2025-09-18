@@ -13,7 +13,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-import { SpendingLimitCard } from "./SpendingLimitCard"
+import { SpendingLimitCard } from "./spending-limit-card"
 
 export function NavMain({
   items,

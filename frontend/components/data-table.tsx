@@ -71,6 +71,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { parseISO, format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 export const schema = z.object({
   id: z.number(),
@@ -192,7 +194,7 @@ const getColumns = (
     cell: ({ row }) => (
       <div className="text-center">
         {row.original.payment_date
-          ? new Date(row.original.payment_date).toLocaleDateString("pt-BR")
+          ? format(parseISO(row.original.payment_date), "dd/MM/yyyy", { locale: ptBR })
           : <span className="text-muted-foreground">-</span>}
       </div>
     ),
@@ -204,7 +206,7 @@ const getColumns = (
     cell: ({ row }) => (
       <div className="text-center">
         {row.original.due_date
-          ? new Date(row.original.due_date).toLocaleDateString("pt-BR")
+          ? format(parseISO(row.original.due_date), "dd/MM/yyyy", { locale: ptBR })
           : <span className="text-muted-foreground">-</span>}
       </div>
     ),
