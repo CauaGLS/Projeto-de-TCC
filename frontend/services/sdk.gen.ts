@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, GetFinancesByTypeData, GetFinancesByTypeResponse, GetFinancesByCategoryData, GetFinancesByCategoryResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, GetFinancesByTypeData, GetFinancesByTypeResponse, GetFinancesByCategoryData, GetFinancesByCategoryResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -124,7 +124,7 @@ export class Finances {
     
     /**
      * Get Spending Limit
-     * @returns SpendingLimitSchema OK
+     * @returns unknown OK
      * @throws ApiError
      */
     public static getSpendingLimit(): CancelablePromise<GetSpendingLimitResponse> {
@@ -147,6 +147,18 @@ export class Finances {
             url: '/api/spending-limit',
             body: data.requestBody,
             mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * Delete Spending Limit
+     * @returns void No Content
+     * @throws ApiError
+     */
+    public static deleteSpendingLimit(): CancelablePromise<DeleteSpendingLimitResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/spending-limit'
         });
     }
 }

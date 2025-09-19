@@ -6,18 +6,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useSpendingLimit } from "@/hooks/useSpendingLimit"
+import { Trash2 } from "lucide-react"
 
 export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
-  const { spendingLimit, setSpendingLimit, isSaving } = useSpendingLimit()
+  const { spendingLimit, setSpendingLimit, isSaving, deleteSpendingLimit, isDeleting } =
+    useSpendingLimit()
 
-  const [displayValue, setDisplayValue] = useState("1.000,00")
-  const [numericValue, setNumericValue] = useState(1000)
+  const [displayValue, setDisplayValue] = useState("")
+  const [numericValue, setNumericValue] = useState<number | null>(null)
 
   useEffect(() => {
     if (spendingLimit) {
       const val = Number(spendingLimit.value)
       setNumericValue(val)
       setDisplayValue(formatCurrency(val))
+    } else {
+      // sem limite → campo vazio
+      setNumericValue(null)
+      setDisplayValue("")
     }
   }, [spendingLimit])
 
@@ -42,12 +48,23 @@ export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
   }
 
   function handleBlur() {
-    setDisplayValue(formatCurrency(numericValue))
+    if (numericValue !== null) {
+      setDisplayValue(formatCurrency(numericValue))
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSpendingLimit({ value: numericValue })
+    if (numericValue !== null) {
+      setSpendingLimit({ value: numericValue })
+    }
+    onClose()
+  }
+
+  function handleDelete() {
+    deleteSpendingLimit()
+    setDisplayValue("")
+    setNumericValue(null)
     onClose()
   }
 
@@ -60,15 +77,29 @@ export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="space-y-2">
             <Label htmlFor="limit">Valor do Limite (R$)</Label>
-            <Input
-              id="limit"
-              name="limit"
-              value={displayValue}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="0,00"
-              required
-            />
+            <div className="relative flex items-center">
+              <Input
+                id="limit"
+                name="limit"
+                value={displayValue}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="0,00"
+                className="pr-10"
+              />
+              {spendingLimit && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="absolute right-1 h-8 w-8 text-red-500 hover:bg-red-100"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
           </div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isSaving} className="flex-1">

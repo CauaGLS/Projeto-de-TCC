@@ -46,7 +46,7 @@ class CreateFinanceSchema(Schema):
 class SpendingLimitSchema(ModelSchema):
     id: int
     user: UserSchema
-    value: float
+    value: Optional[float]
     created_at: datetime
     updated_at: datetime
 
@@ -55,4 +55,4 @@ class SpendingLimitSchema(ModelSchema):
         model_fields = "__all__"
 
 class CreateOrUpdateSpendingLimitSchema(Schema):
-    value: float
+    value: Optional[float]

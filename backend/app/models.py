@@ -116,7 +116,7 @@ class Finance(models.Model):
 class SpendingLimit(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="spending_limit")
-    value = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
+    value = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -124,5 +124,5 @@ class SpendingLimit(models.Model):
         db_table = "spending_limits"
 
     def __str__(self):
-        return f"Limite de {self.user.email}: {self.value}"
+        return f"Limite de {self.user.email}: {self.value if self.value is not None else 'Sem limite'}"
 

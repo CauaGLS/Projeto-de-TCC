@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from ninja import Router, PatchDict
-from typing import List
+from typing import List, Optional
 
 from .models import Finance, SpendingLimit
 from .schemas import CreateFinanceSchema, FinanceSchema, DetailFinanceSchema, CreateOrUpdateSpendingLimitSchema, SpendingLimitSchema
@@ -60,13 +60,12 @@ def get_finances_by_category(request, category: str):
 #==============Limites de Gastos=================
 
 # Obter limite atual do usuário
-@router.get("/spending-limit", response=SpendingLimitSchema)
+@router.get("/spending-limit", response=Optional[SpendingLimitSchema])
 def get_spending_limit(request):
-    limit, created = SpendingLimit.objects.get_or_create(
-        user=request.auth,
-        defaults={"value": 1000.00}
-    )
-    return limit
+    try:
+        return SpendingLimit.objects.get(user=request.auth)
+    except SpendingLimit.DoesNotExist:
+        return None
 
 # Definir ou atualizar limite
 @router.post("/spending-limit", response=SpendingLimitSchema)
@@ -76,3 +75,13 @@ def set_spending_limit(request, payload: CreateOrUpdateSpendingLimitSchema):
         defaults={"value": payload.value}
     )
     return limit
+
+# Remover limite
+@router.delete("/spending-limit", response={204: None})
+def delete_spending_limit(request):
+    try:
+        limit = SpendingLimit.objects.get(user=request.auth)
+        limit.delete()
+    except SpendingLimit.DoesNotExist:
+        pass
+    return 204, None

@@ -45,6 +45,15 @@ const COLORS = {
   limite: "#eab308", // amarelo
 }
 
+// labels para visualizações
+const VIEW_LABELS: Record<string, string> = {
+  "7d": "Últimos 7 dias",
+  "1m": "Este mês",
+  "3m": "Últimos 3 meses",
+  "6m": "Últimos 6 meses",
+  "1y": "Este ano",
+}
+
 // tooltip customizado do gráfico
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload) return null
@@ -79,7 +88,8 @@ export function FinanceChart() {
   const { spendingLimit } = useSpendingLimit()
   const [view, setView] = React.useState("3m") // padrão = últimos 3 meses
 
-  const limite = spendingLimit?.value ? Number(spendingLimit.value) : 1000
+  const selectedLabel = VIEW_LABELS[view]
+  const limite = spendingLimit?.value ?? null
   const today = new Date()
 
   // gera intervalo completo (dias ou meses) para mostrar no gráfico, mesmo vazio
@@ -133,7 +143,12 @@ export function FinanceChart() {
         ? format(d, "dd/MM")
         : format(d, "MMM", { locale: ptBR })
 
-    grouped[key] = { receita: 0, despesa: 0, limite, label }
+    grouped[key] = {
+      receita: 0,
+      despesa: 0,
+      limite: limite ?? Infinity,
+      label,
+    }
   })
 
   // acumula dados
@@ -164,7 +179,7 @@ export function FinanceChart() {
   // resumo
   const totalReceita = chartData.reduce((acc, d) => acc + d.receita, 0)
   const totalDespesa = chartData.reduce((acc, d) => acc + d.despesa, 0)
-  const percLimite = ((totalDespesa / limite) * 100).toFixed(1)
+  const percLimite = limite ? ((totalDespesa / limite) * 100).toFixed(1) : null
 
   return (
     <Card>
@@ -175,25 +190,15 @@ export function FinanceChart() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Visualização
+                {selectedLabel}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setView("7d")}>
-                Últimos 7 dias
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("1m")}>
-                Este mês
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("3m")}>
-                Últimos 3 meses
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("6m")}>
-                Últimos 6 meses
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("1y")}>
-                Este ano
-              </DropdownMenuItem>
+              {Object.entries(VIEW_LABELS).map(([key, label]) => (
+                <DropdownMenuItem key={key} onClick={() => setView(key)}>
+                  {label}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -226,48 +231,75 @@ export function FinanceChart() {
         </div>
       </CardHeader>
 
-      {/* resumo financeiro */}
-      <div className="flex justify-around px-6 pb-2 text-sm font-medium">
-        <p className="text-green-600">Receita: R$ {totalReceita.toFixed(2)}</p>
-        <p className="text-red-600">Despesa: R$ {totalDespesa.toFixed(2)}</p>
-        <p
-          className={
-            totalDespesa > limite ? "text-red-600" : "text-yellow-600"
-          }
-        >
-          Uso do limite: {percLimite}%
-        </p>
+      {/* resumo financeiro estilizado */}
+      <div className="flex justify-around px-6 pb-4 text-sm font-medium gap-4">
+        <div className="flex items-center gap-2 border rounded-md px-4 py-2 shadow-sm bg-white">
+          <span
+            className="inline-block size-3 rounded-full"
+            style={{ backgroundColor: COLORS.receita }}
+          />
+          <p className="text-green-600">
+            Receita: R$ {totalReceita.toFixed(2)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 border rounded-md px-4 py-2 shadow-sm bg-white">
+          <span
+            className="inline-block size-3 rounded-full"
+            style={{ backgroundColor: COLORS.despesa }}
+          />
+          <p className="text-red-600">
+            Despesa: R$ {totalDespesa.toFixed(2)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 border rounded-md px-4 py-2 shadow-sm bg-white">
+          <span
+            className="inline-block size-3 rounded-full"
+            style={{ backgroundColor: COLORS.limite }}
+          />
+          <p
+            className={
+              limite
+                ? totalDespesa > limite
+                  ? "text-red-600"
+                  : "text-yellow-600"
+                : "text-gray-500"
+            }
+          >
+            Uso do limite: {percLimite ? `${percLimite}%` : "Sem limite"}
+          </p>
+        </div>
       </div>
 
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} barSize={40}>
-            <CartesianGrid vertical={false} strokeDasharray="0" />
-            <XAxis
-              dataKey="label"
-              axisLine={false}
-              tickLine={false}
-              minTickGap={20} // espaçamento maior para dias
-            />
-            <YAxis domain={[0, "auto"]} axisLine={false} tickLine={false} />
-            <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine y={limite} stroke={COLORS.limite} strokeWidth={3} />
-            <Bar
-              dataKey="despesa"
-              fill={COLORS.despesa}
-              name="Despesa"
-              radius={4}
-              animationDuration={600}
-            />
-            <Bar
-              dataKey="receita"
-              fill={COLORS.receita}
-              name="Receita"
-              radius={4}
-              animationDuration={600}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="border rounded-md p-2 shadow-sm bg-white">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} barSize={40}>
+              <CartesianGrid vertical={false} strokeDasharray="0" />
+              <XAxis dataKey="label" axisLine={false} tickLine={false} />
+              <YAxis domain={[0, "auto"]} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+
+              {limite !== null && (
+                <ReferenceLine y={limite} stroke={COLORS.limite} strokeWidth={3} />
+              )}
+
+              <Bar
+                dataKey="despesa"
+                fill={COLORS.despesa}
+                name="Despesa"
+                radius={4}
+                animationDuration={600}
+              />
+              <Bar
+                dataKey="receita"
+                fill={COLORS.receita}
+                name="Receita"
+                radius={4}
+                animationDuration={600}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   )
