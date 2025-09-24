@@ -37,19 +37,19 @@ const data = {
     },
     {
       title: "Metas",
-      url: "#",
+      url: "/goals",
       icon: IconBusinessplan,
     },
     {
       title: "Família",
-      url: "#",
+      url: "/family",
       icon: IconUsers,
     },
   ],
   navSecondary: [
     {
       title: "Configurações",
-      url: "#",
+      url: "/settings",
       icon: IconSettings,
     },
   ],
