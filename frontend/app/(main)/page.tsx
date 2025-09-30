@@ -10,6 +10,7 @@ import { useFinanceCreate } from "@/hooks/useFinanceCreate";
 import { schema } from "@/components/data-table";
 import { z } from "zod";
 import { SearchBar, Filters } from "@/components/search-bar";
+import { ExportFinanceCard } from "@/components/export-finance-card";
 
 import type { FinanceSchema as ApiFinance } from "@/services/types.gen";
 
@@ -21,6 +22,7 @@ export default function Page() {
   const { showCreate, setShowCreate } = useFinanceCreate();
   const [editing, setEditing] = useState<ApiFinance | null>(null);
   const [filters, setFilters] = useState<Filters>({});
+  const [showExport, setShowExport] = useState(false);
 
   const rows: FinanceRow[] = useMemo(() => {
     if (!data) return [];
@@ -71,6 +73,9 @@ export default function Page() {
       {editing && (
         <FinanceCreateCard finance={editing} onClose={() => setEditing(null)} />
       )}
+      {showExport && (
+        <ExportFinanceCard onClose={() => setShowExport(false)} data={rows} />
+      )}
 
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col gap-2">
@@ -81,7 +86,9 @@ export default function Page() {
                 Erro ao carregar registros.
               </div>
             )}
+
             <SearchBar onApply={setFilters} />
+
             <DataTable
               data={rows}
               onAddClick={() => setShowCreate(true)}
@@ -91,7 +98,9 @@ export default function Page() {
                 setEditing(found as ApiFinance | null);
               }}
               onDeleteClick={(id) => deleteFinance(id)}
+              onExportClick={() => setShowExport(true)}
             />
+
             <div className="px-4 lg:px-6">
               <FinanceChart />
             </div>

@@ -73,6 +73,7 @@ import {
 } from "@/components/ui/tabs"
 import { parseISO, format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { FileDown } from "lucide-react"
 
 export const schema = z.object({
   id: z.number(),
@@ -337,11 +338,13 @@ export function DataTable({
   onAddClick,
   onEditClick,
   onDeleteClick,
+  onExportClick,
 }: {
   data: z.infer<typeof schema>[]
   onAddClick?: () => void
   onEditClick?: (finance: z.infer<typeof schema>) => void
   onDeleteClick?: (id: number) => void
+  onExportClick?: () => void
 }) {
   const [data, setData] = React.useState(() => initialData)
   React.useEffect(() => setData(initialData), [initialData])
@@ -411,6 +414,15 @@ export function DataTable({
       <div className="flex items-center justify-between px-4 lg:px-6">
         <TabsList>
           <TabsTrigger value="outline">Registros</TabsTrigger>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportClick}
+            className="ml-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Exportar
+          </Button>
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
