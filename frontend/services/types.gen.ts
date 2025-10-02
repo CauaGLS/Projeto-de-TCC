@@ -33,9 +33,20 @@ export type DetailFinanceSchema = {
     payment_date: (string | null);
     created_at: string;
     updated_at: string;
+    attachments?: Array<FinanceAttachmentSchema>;
     title: string;
     value: (number | string);
     category: string;
+};
+
+export type FinanceAttachmentSchema = {
+    id: number;
+    created_by: (UserSchema | null);
+    uploaded_at: string;
+    file_url?: (string | null);
+    name?: (string | null);
+    content_type?: (string | null);
+    size?: (number | null);
 };
 
 export type FinanceSchema = {
@@ -109,17 +120,20 @@ export type DeleteFinanceData = {
 
 export type DeleteFinanceResponse = (void);
 
-export type GetFinancesByTypeData = {
-    financeType: 'Receita' | 'Despesa';
+export type UploadFinanceAttachmentsData = {
+    financeId: number;
+    formData: {
+        files: Array<((Blob | File))>;
+    };
 };
 
-export type GetFinancesByTypeResponse = (Array<FinanceSchema>);
+export type UploadFinanceAttachmentsResponse = (Array<FinanceAttachmentSchema>);
 
-export type GetFinancesByCategoryData = {
-    category: string;
+export type DeleteFinanceAttachmentData = {
+    attachmentId: number;
 };
 
-export type GetFinancesByCategoryResponse = (Array<FinanceSchema>);
+export type DeleteFinanceAttachmentResponse = (void);
 
 export type GetSpendingLimitResponse = ((SpendingLimitSchema | null));
 

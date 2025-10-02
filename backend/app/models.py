@@ -111,8 +111,6 @@ class Finance(models.Model):
         ordering = ["-payment_date", "created_at"]
 
 
-# models.py
-
 class SpendingLimit(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="spending_limit")
@@ -126,3 +124,18 @@ class SpendingLimit(models.Model):
     def __str__(self):
         return f"Limite de {self.user.email}: {self.value if self.value is not None else 'Sem limite'}"
 
+
+class FinanceAttachment(models.Model):
+    finance = models.ForeignKey(Finance, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(upload_to="finances")
+    name = models.CharField(max_length=255, null=True, blank=True)
+    content_type = models.CharField(max_length=255, null=True, blank=True)
+    size = models.IntegerField(null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        db_table = "finance_attachments"
+
+    def __str__(self):
+        return self.file.name

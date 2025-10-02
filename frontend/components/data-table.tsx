@@ -105,7 +105,8 @@ function DragHandle({ id }: { id: number }) {
 
 const getColumns = (
   onEditClick?: (finance: z.infer<typeof schema>) => void,
-  onDeleteClick?: (id: number) => void
+  onDeleteClick?: (id: number) => void,
+  onAttachClick?: (finance: z.infer<typeof schema>) => void,
 ): ColumnDef<z.infer<typeof schema>>[] => [
   {
     accessorKey: "id",
@@ -268,7 +269,12 @@ const getColumns = (
             >
               Editar
             </DropdownMenuItem>
-            <DropdownMenuItem>Detalhes</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => !multipleSelected && onAttachClick?.(row.original)}
+              disabled={multipleSelected}
+            >
+              Anexo
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
@@ -339,12 +345,14 @@ export function DataTable({
   onEditClick,
   onDeleteClick,
   onExportClick,
+  onAttachClick,
 }: {
   data: z.infer<typeof schema>[]
   onAddClick?: () => void
   onEditClick?: (finance: z.infer<typeof schema>) => void
   onDeleteClick?: (id: number) => void
   onExportClick?: () => void
+  onAttachClick?: (finance: z.infer<typeof schema>) => void
 }) {
   const [data, setData] = React.useState(() => initialData)
   React.useEffect(() => setData(initialData), [initialData])
@@ -375,7 +383,7 @@ export function DataTable({
 
   const table = useReactTable({
     data,
-    columns: getColumns(onEditClick, onDeleteClick),
+    columns: getColumns(onEditClick, onDeleteClick, onAttachClick),
     state: {
       sorting,
       columnVisibility,

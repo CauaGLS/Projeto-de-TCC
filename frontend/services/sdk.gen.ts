@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, GetFinancesByTypeData, GetFinancesByTypeResponse, GetFinancesByCategoryData, GetFinancesByCategoryResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -89,35 +89,38 @@ export class Finances {
     }
     
     /**
-     * Get Finances By Type
+     * Upload Finance Attachments
      * @param data The data for the request.
-     * @param data.financeType
-     * @returns FinanceSchema OK
+     * @param data.financeId
+     * @param data.formData
+     * @returns FinanceAttachmentSchema OK
      * @throws ApiError
      */
-    public static getFinancesByType(data: GetFinancesByTypeData): CancelablePromise<GetFinancesByTypeResponse> {
+    public static uploadFinanceAttachments(data: UploadFinanceAttachmentsData): CancelablePromise<UploadFinanceAttachmentsResponse> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/finances/type/{finance_type}',
+            method: 'POST',
+            url: '/api/finances/{finance_id}/attachments',
             path: {
-                finance_type: data.financeType
-            }
+                finance_id: data.financeId
+            },
+            formData: data.formData,
+            mediaType: 'multipart/form-data'
         });
     }
     
     /**
-     * Get Finances By Category
+     * Delete Finance Attachment
      * @param data The data for the request.
-     * @param data.category
-     * @returns FinanceSchema OK
+     * @param data.attachmentId
+     * @returns void No Content
      * @throws ApiError
      */
-    public static getFinancesByCategory(data: GetFinancesByCategoryData): CancelablePromise<GetFinancesByCategoryResponse> {
+    public static deleteFinanceAttachment(data: DeleteFinanceAttachmentData): CancelablePromise<DeleteFinanceAttachmentResponse> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/finances/category/{category}',
+            method: 'DELETE',
+            url: '/api/attachments/{attachment_id}',
             path: {
-                category: data.category
+                attachment_id: data.attachmentId
             }
         });
     }

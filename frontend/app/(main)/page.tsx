@@ -8,9 +8,10 @@ import { FinanceCreateCard } from "@/components/finance-create-card";
 import { useDeleteFinance } from "@/hooks/useDeleteFinance";
 import { useFinanceCreate } from "@/hooks/useFinanceCreate";
 import { schema } from "@/components/data-table";
-import { z } from "zod";
+import { set, z } from "zod";
 import { SearchBar, Filters } from "@/components/search-bar";
 import { ExportFinanceCard } from "@/components/export-finance-card";
+import { FinanceAttachmentCard } from "@/components/finance-attachment-card";
 
 import type { FinanceSchema as ApiFinance } from "@/services/types.gen";
 
@@ -23,6 +24,7 @@ export default function Page() {
   const [editing, setEditing] = useState<ApiFinance | null>(null);
   const [filters, setFilters] = useState<Filters>({});
   const [showExport, setShowExport] = useState(false);
+  const [attaching, setAttaching] = useState<z.infer<typeof schema> | null>(null)
 
   const rows: FinanceRow[] = useMemo(() => {
     if (!data) return [];
@@ -71,11 +73,15 @@ export default function Page() {
     <>
       {showCreate && <FinanceCreateCard onClose={() => setShowCreate(false)} />}
       {editing && (
-        <FinanceCreateCard finance={editing} onClose={() => setEditing(null)} />
+        <FinanceCreateCard onClose={() => setEditing(null)} finance={editing} />
       )}
       {showExport && (
         <ExportFinanceCard onClose={() => setShowExport(false)} data={rows} />
       )}
+      {attaching && (
+        <FinanceAttachmentCard onClose={() => setAttaching(null)} financeId={attaching.id} open={!!attaching} />
+      )}
+
 
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col gap-2">
@@ -99,6 +105,7 @@ export default function Page() {
               }}
               onDeleteClick={(id) => deleteFinance(id)}
               onExportClick={() => setShowExport(true)}
+              onAttachClick={(row) => setAttaching(row)}
             />
 
             <div className="px-4 lg:px-6">

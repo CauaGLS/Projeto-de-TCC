@@ -1,10 +1,21 @@
-# app/schemas.py
 from datetime import date, datetime
 from ninja import ModelSchema, Schema
-from typing import Optional
-from .models import Finance, SpendingLimit
+from typing import Optional, List
+from .models import Finance, SpendingLimit, FinanceAttachment
 from .types import FinanceType, FinanceStatus
 from core.schemas import UserSchema
+
+
+class FinanceAttachmentSchema(ModelSchema):
+    id: int
+    created_by: Optional[UserSchema]
+    uploaded_at: datetime
+    file_url: Optional[str] = None  # URL temporária gerada no backend
+
+    class Config:
+        model = FinanceAttachment
+        model_fields = ["id", "name", "content_type", "size", "uploaded_at"]
+
 
 class FinanceSchema(ModelSchema):
     id: int
@@ -20,6 +31,7 @@ class FinanceSchema(ModelSchema):
         model = Finance
         model_fields = "__all__"
 
+
 class DetailFinanceSchema(ModelSchema):
     id: int
     created_by: UserSchema
@@ -29,10 +41,12 @@ class DetailFinanceSchema(ModelSchema):
     payment_date: Optional[date]
     created_at: datetime
     updated_at: datetime
+    attachments: List[FinanceAttachmentSchema] = []
 
     class Config:
         model = Finance
         model_fields = "__all__"
+
 
 class CreateFinanceSchema(Schema):
     title: str
@@ -42,6 +56,7 @@ class CreateFinanceSchema(Schema):
     category: str
     type: FinanceType = FinanceType.EXPENSE
     status: FinanceStatus = FinanceStatus.PENDING
+
 
 class SpendingLimitSchema(ModelSchema):
     id: int
@@ -53,6 +68,7 @@ class SpendingLimitSchema(ModelSchema):
     class Config:
         model = SpendingLimit
         model_fields = "__all__"
+
 
 class CreateOrUpdateSpendingLimitSchema(Schema):
     value: Optional[float]

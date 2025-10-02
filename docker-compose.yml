@@ -1,22 +1,36 @@
 name: controle_de_financas
 
 services:
-   db:
-     image: postgres
-     ports:
-       - "5432:5432"
-     env_file:
-       - ./.env
-     volumes:
-       - ./docker/db:/var/lib/postgresql/data
-     networks:
-       - controle_de_financas
-     healthcheck:
-       test: ["CMD-SHELL", "pg_isready -U postgres"]
-       interval: 2s
-       timeout: 2s
-       retries: 10
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./.env
+    volumes:
+      - ./docker/db:/var/lib/postgresql/data
+    networks:
+      - controle_de_financas
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./docker/minio:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - controle_de_financas
 
 networks:
   controle_de_financas:
