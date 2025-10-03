@@ -1,32 +1,63 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useRef, useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Trash2 } from "lucide-react"
-import { useFinanceAttachments } from "@/hooks/useFinanceAttachments"
+} from "@/components/ui/dialog";
+import { Trash2, Paperclip, Download } from "lucide-react";
+import { useFinanceAttachments } from "@/hooks/useFinanceAttachments";
 
 interface FinanceAttachmentCardProps {
-  financeId: number
-  open: boolean
-  onClose: () => void
+  financeId: number;
+  open: boolean;
+  onClose: () => void;
 }
 
-export function FinanceAttachmentCard({ financeId, open, onClose }: FinanceAttachmentCardProps) {
-  const { uploadAttachment, isUploading } = useFinanceAttachments(financeId)
-  const [file, setFile] = useState<File | null>(null)
+export function FinanceAttachmentCard({
+  financeId,
+  open,
+  onClose,
+}: FinanceAttachmentCardProps) {
+  const { attachments, uploadAttachment, isUploading, deleteAttachment } =
+    useFinanceAttachments(financeId);
+  const [file, setFile] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  function handleConfirm() {
-    if (file) {
-      uploadAttachment(file, { onSuccess: () => onClose() })
+  // reset local state when dialog opens/closes or when attachments change
+  useEffect(() => {
+    if (!open) {
+      setFile(null);
     }
+  }, [open]);
+
+  useEffect(() => {
+    // if an attachment was uploaded elsewhere, clear local selected file
+    if (attachments.length > 0) {
+      setFile(null);
+    }
+  }, [attachments]);
+
+  function handleSelectClick() {
+    inputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFile(e.target.files?.[0] ?? null);
+  }
+
+  async function handleConfirm() {
+    if (!file) return;
+    // mutate via hook (assume signature uploadAttachment(file, options))
+    uploadAttachment(file, {
+      onSuccess: () => {
+        onClose();
+      },
+    });
   }
 
   return (
@@ -35,37 +66,88 @@ export function FinanceAttachmentCard({ financeId, open, onClose }: FinanceAttac
         <DialogHeader>
           <DialogTitle>Anexar Arquivo</DialogTitle>
         </DialogHeader>
+
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-            {file && (
+          {/* Se já existe anexo */}
+          {attachments.length > 0 ? (
+            <div className="flex items-center justify-between rounded-md border p-2">
+              <div className="flex items-center gap-2">
+                <Paperclip className="h-4 w-4" />
+                <span className="truncate">
+                  {attachments[0].name ?? "Arquivo anexado"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => window.open(attachments[0].file_url, "_blank")}
+                  title="Baixar"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => deleteAttachment(attachments[0].id)}
+                  title="Remover anexo"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            // Se NÃO existe anexo, mostra seletor programático
+            <div className="flex items-center gap-2">
+              <input
+                id={`file-upload-${financeId}`}
+                ref={inputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
               <Button
                 type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => setFile(null)}
+                variant="outline"
+                onClick={handleSelectClick}
+                className="flex-1 flex items-center gap-2 truncate"
               >
-                <Trash2 className="h-4 w-4" />
+                <Paperclip className="h-4 w-4" />
+                {file ? file.name : "Selecionar arquivo"}
               </Button>
-            )}
-          </div>
+
+              {file && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => setFile(null)}
+                  title="Remover seleção"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
+
         <DialogFooter className="flex gap-2 pt-4">
-            <Button
-              onClick={handleConfirm}
-              disabled={!file || isUploading}
-              className="flex-1"
-            >
-              {isUploading ? "Anexando..." : "Anexar"}
-            </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={!file || isUploading}
+            className="flex-1"
+          >
+            {isUploading ? "Anexando..." : "Anexar"}
+          </Button>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

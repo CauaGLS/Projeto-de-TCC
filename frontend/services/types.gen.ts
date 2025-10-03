@@ -43,7 +43,7 @@ export type FinanceAttachmentSchema = {
     id: number;
     created_by: (UserSchema | null);
     uploaded_at: string;
-    file_url?: (string | null);
+    file_url: string;
     name?: (string | null);
     content_type?: (string | null);
     size?: (number | null);

@@ -10,7 +10,7 @@ class FinanceAttachmentSchema(ModelSchema):
     id: int
     created_by: Optional[UserSchema]
     uploaded_at: datetime
-    file_url: Optional[str] = None  # URL temporária gerada no backend
+    file_url: str
 
     class Config:
         model = FinanceAttachment
