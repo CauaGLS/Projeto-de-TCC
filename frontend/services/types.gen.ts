@@ -8,6 +8,7 @@ export type CreateFinanceSchema = {
     category: string;
     type?: (FinanceType);
     status?: (FinanceStatus);
+    record_type?: (string | null);
 };
 
 export type CreateFinanceSchemaPatch = {
@@ -18,6 +19,13 @@ export type CreateFinanceSchemaPatch = {
     category?: (string | null);
     type?: (FinanceType | null);
     status?: (FinanceStatus | null);
+    record_type?: (string | null);
+};
+
+export type CreateGoalSchema = {
+    title: string;
+    target_value: number;
+    deadline?: (string | null);
 };
 
 export type CreateOrUpdateSpendingLimitSchema = {
@@ -71,12 +79,34 @@ export const FinanceStatus = {
     ATRASADA: 'Atrasada'
 } as const;
 
-export type FinanceType = 'Receita' | 'Despesa';
+export type FinanceType = 'Receita' | 'Despesa' | 'Meta';
 
 export const FinanceType = {
     RECEITA: 'Receita',
-    DESPESA: 'Despesa'
+    DESPESA: 'Despesa',
+    META: 'Meta'
 } as const;
+
+export type GoalRecordSchema = {
+    id: number;
+    title: string;
+    value: number;
+    type: string;
+    created_at: string;
+};
+
+export type GoalSchema = {
+    id: number;
+    title: string;
+    target_value: number;
+    current_value: number;
+    progress: number;
+    deadline: (string | null);
+    created_at: string;
+    updated_at: string;
+    records?: Array<GoalRecordSchema>;
+    user: string;
+};
 
 export type SpendingLimitSchema = {
     id: number;
@@ -96,6 +126,7 @@ export type UserSchema = {
 export type GetFinancesResponse = (Array<FinanceSchema>);
 
 export type CreateFinanceData = {
+    goalId?: (number | null);
     requestBody: CreateFinanceSchema;
 };
 
@@ -144,3 +175,39 @@ export type SetSpendingLimitData = {
 export type SetSpendingLimitResponse = (SpendingLimitSchema);
 
 export type DeleteSpendingLimitResponse = (void);
+
+export type UpdateGoalData = {
+    goalId: number;
+    requestBody: CreateGoalSchema;
+};
+
+export type UpdateGoalResponse = (GoalSchema);
+
+export type GetGoalData = {
+    goalId: number;
+};
+
+export type GetGoalResponse = (GoalSchema);
+
+export type DeleteGoalData = {
+    goalId: number;
+};
+
+export type DeleteGoalResponse = (void);
+
+export type ListGoalsResponse = (Array<GoalSchema>);
+
+export type CreateGoalData = {
+    requestBody: CreateGoalSchema;
+};
+
+export type CreateGoalResponse = (GoalSchema);
+
+export type AddGoalRecordData = {
+    goalId: number;
+    payload: {
+        [key: string]: unknown;
+    };
+};
+
+export type AddGoalRecordResponse = (GoalSchema);

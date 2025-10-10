@@ -1,0 +1,277 @@
+"use client";
+
+import { useState } from "react";
+import { Finances } from "@/services";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { CalendarIcon, X, Trash2, Pencil } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { GoalFormDialog } from "./goal-form-dialog";
+
+interface GoalDetailsProps {
+  goal: any;
+  onClose: () => void;
+}
+
+export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
+  const queryClient = useQueryClient();
+  const [amount, setAmount] = useState("0,00");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [deadlineDate, setDeadlineDate] = useState<Date | null>(
+    goal.deadline_date ? new Date(goal.deadline_date) : null
+  );
+  const [editOpen, setEditOpen] = useState(false);
+  const [currentGoal, setGoal] = useState(goal)
+
+  const deleteGoalMutation = useMutation({
+    mutationFn: () => Finances.deleteGoal({ goalId: goal.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      onClose();
+    },
+  });
+
+  const progressPercent = Math.min(
+    (goal.current_value / goal.target_value) * 100,
+    100
+  );
+
+  // === formatação moeda ===
+  function formatCurrency(value: number): string {
+    return new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  function parseCurrency(value: string): number {
+    const clean = value.replace(/\./g, "").replace(",", ".");
+    return parseFloat(clean) || 0;
+  }
+
+  function handleCurrencyChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let raw = e.target.value.replace(/[^\d,.]/g, "");
+    const hasDecimal = raw.includes(",") || raw.includes(".");
+    if (hasDecimal) {
+      raw = raw.replace(".", ",");
+      const firstCommaIndex = raw.indexOf(",");
+      if (firstCommaIndex !== -1) {
+        raw =
+          raw.substring(0, firstCommaIndex + 1) +
+          raw.substring(firstCommaIndex + 1).replace(/,/g, "");
+      }
+      const parts = raw.split(",");
+      if (parts[1] && parts[1].length > 2) {
+        raw = `${parts[0]},${parts[1].slice(0, 2)}`;
+      }
+    }
+    if (raw.startsWith(",")) raw = "0" + raw;
+    setAmount(raw);
+  }
+
+  function handleCurrencyBlur() {
+    const numeric = parseCurrency(amount);
+    setAmount(formatCurrency(numeric));
+  }
+
+  function handleCurrencyFocus() {
+    if (amount === "0,00" || amount === "0") setAmount("");
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-lg relative">
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+          >
+            <X size={20} />
+          </button>
+
+          {/* Cabeçalho */}
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold mb-1">{goal.title}</h2>
+            <p className="text-lg text-gray-800">
+              R$ {Number(goal.target_value).toFixed(2)}
+            </p>
+          </div>
+
+          {/* Progresso */}
+          <div className="mb-4">
+            <Progress value={progressPercent} className="h-4 bg-gray-200" />
+            <div className="flex justify-between text-sm mt-1">
+              <span>R$ {Number(goal.current_value).toFixed(2)}</span>
+              <span>R$ {Number(goal.target_value).toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Data limite */}
+          <div className="mb-4">
+            <label className="text-sm font-medium mb-1 block">
+              Data limite
+            </label>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {deadlineDate
+                    ? format(deadlineDate, "dd/MM/yyyy", { locale: ptBR })
+                    : "Selecionar data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="p-0">
+                <Calendar
+                  mode="single"
+                  selected={deadlineDate ?? undefined}
+                  onSelect={(d) => setDeadlineDate(d ?? null)}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Campo de valor com lógica do FinanceCreateCard */}
+          <div className="mb-4">
+            <label className="text-sm font-medium mb-1 block">Valor (R$)</label>
+            <Input
+              value={amount}
+              onChange={handleCurrencyChange}
+              onBlur={handleCurrencyBlur}
+              onFocus={handleCurrencyFocus}
+              placeholder="0,00"
+            />
+          </div>
+
+          {/* Botões de ação */}
+          <div className="flex gap-2 mb-6">
+            <Button
+              className="flex-1 bg-black text-white hover:bg-gray-800"
+              onClick={async () => {
+                const numericValue = parseCurrency(amount);
+                if (numericValue <= 0) return;
+                await Finances.createFinance({
+                  goalId: goal.id,
+                  requestBody: {
+                    title: `Adição em ${goal.title}`,
+                    value: numericValue,
+                    category: "Meta",
+                    type: "Meta",
+                    status: "Pago",
+                    record_type: "Retirar",
+                  },
+                });
+                const updatedGoal = await Finances.getGoal({ goalId: goal.id });
+                queryClient.setQueryData(["goals", goal.id], updatedGoal);
+
+                setAmount("0,00");
+                setGoal(updatedGoal);
+              }}
+            >
+              Somar
+            </Button>
+            <Button
+              className="flex-1 bg-red-600 text-white hover:bg-red-700"
+              onClick={async () => {
+                const numericValue = parseCurrency(amount);
+                if (numericValue <= 0) return;
+                await Finances.createFinance({
+                  goalId: goal.id,
+                  requestBody: {
+                    title: `Subtração em ${goal.title}`,
+                    value: numericValue,
+                    category: "Meta",
+                    type: "Meta",
+                    status: "Pago",
+                    record_type: "Adicionar",
+                  },
+                });
+                const updatedGoal = await Finances.getGoal({ goalId: goal.id });
+                queryClient.setQueryData(["goals", goal.id], updatedGoal);
+
+                setAmount("0,00");
+                setGoal(updatedGoal);
+              }}
+            >
+              Subtrair
+            </Button>
+          </div>
+
+          {/* Histórico */}
+          <div className="mb-6">
+            <h3 className="font-bold mb-2">Histórico</h3>
+            <ul className="max-h-48 overflow-y-auto space-y-1">
+              {goal.records?.length ? (
+                goal.records.map((r: any) => (
+                  <li
+                    key={r.id}
+                    className="flex justify-between text-sm font-medium"
+                  >
+                    <span
+                      className={
+                        r.type === "Adicionar"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {r.type === "Adicionar" ? "+ " : "- "}R${" "}
+                      {Number(r.value).toFixed(2)}
+                    </span>
+                    <span className="text-gray-600">
+                      {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                    </span>
+                  </li>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Sem registros.</p>
+              )}
+            </ul>
+          </div>
+
+          {/* Botões Editar / Excluir */}
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Pencil size={16} /> Editar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteGoalMutation.mutate()}
+              disabled={deleteGoalMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <Trash2 size={16} />
+              {deleteGoalMutation.isPending ? "Excluindo..." : "Excluir"}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de edição */}
+      {editOpen && (
+        <GoalFormDialog
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initialData={goal}
+          onSuccess={() =>
+            queryClient.invalidateQueries({ queryKey: ["goals"] })
+          }
+        />
+      )}
+    </>
+  );
+}

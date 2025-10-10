@@ -94,10 +94,8 @@ class Finance(models.Model):
 
     def save(self, *args, **kwargs):
         from datetime import date
-
         if self.status == FinanceStatus.PENDING:
             self.payment_date = None
-
         if (
             self.due_date
             and self.due_date < date.today()
@@ -122,7 +120,7 @@ class SpendingLimit(models.Model):
         db_table = "spending_limits"
 
     def __str__(self):
-        return f"Limite de {self.user.email}: {self.value if self.value is not None else 'Sem limite'}"
+        return f"Limite de {self.user.email}: {self.value or 'Sem limite'}"
 
 
 class FinanceAttachment(models.Model):
@@ -137,5 +135,43 @@ class FinanceAttachment(models.Model):
     class Meta:
         db_table = "finance_attachments"
 
-    def __str__(self):
-        return self.file.name
+
+class Goal(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="goals")
+    title = models.CharField(max_length=100)
+    target_value = models.DecimalField(max_digits=10, decimal_places=2)
+    current_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    deadline = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "goals"
+        ordering = ["-created_at"]
+
+    @property
+    def progress(self):
+        if not self.target_value or self.target_value == 0:
+            return 0.0
+        return float(self.current_value) / float(self.target_value) * 100
+
+
+class GoalRecord(models.Model):
+    goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name="records")
+    title = models.CharField(max_length=100)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    type = models.CharField(max_length=10, choices=[("Adicionar", "Adicionar"), ("Retirar", "Retirar")])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "goal_records"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        total = sum(
+            record.value if record.type == "Adicionar" else -record.value
+            for record in self.goal.records.all()
+        )
+        self.goal.current_value = total
+        self.goal.save()
