@@ -28,12 +28,21 @@ export function useGoals() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
   });
 
-  // 🚨 Aqui era o problema — o parâmetro `requestBody` não existe no SDK
   const addGoalRecord = useMutation({
-    mutationFn: ({ goalId, data }: { goalId: number; data: { title: string; value: number; type: "Adicionar" | "Retirar" } }) =>
-      Finances.addGoalRecord({ goalId, data }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
-  });
+  mutationFn: ({
+    goalId,
+    data,
+  }: {
+    goalId: number;
+    data: { title: string; value: number; type: "Adicionar" | "Retirar" };
+  }) =>
+    Finances.addGoalRecord({
+      goalId,
+      payload: data, // ← aqui está o nome correto esperado pelo SDK
+    }),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
+});
+
 
   return {
     listGoals,

@@ -8,7 +8,6 @@ export type CreateFinanceSchema = {
     category: string;
     type?: (FinanceType);
     status?: (FinanceStatus);
-    record_type?: (string | null);
 };
 
 export type CreateFinanceSchemaPatch = {
@@ -19,7 +18,6 @@ export type CreateFinanceSchemaPatch = {
     category?: (string | null);
     type?: (FinanceType | null);
     status?: (FinanceStatus | null);
-    record_type?: (string | null);
 };
 
 export type CreateGoalSchema = {

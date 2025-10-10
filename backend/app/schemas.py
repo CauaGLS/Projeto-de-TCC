@@ -56,8 +56,6 @@ class CreateFinanceSchema(Schema):
     category: str
     type: FinanceType = FinanceType.EXPENSE
     status: FinanceStatus = FinanceStatus.PENDING
-    record_type: Optional[str] = "Adicionar"
-
 
 class SpendingLimitSchema(ModelSchema):
     id: int
@@ -107,4 +105,3 @@ class CreateGoalSchema(Schema):
     title: str
     target_value: float
     deadline: Optional[date] = None
-
