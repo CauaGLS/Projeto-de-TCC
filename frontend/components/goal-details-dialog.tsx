@@ -6,16 +6,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { CalendarIcon, X, Trash2, Pencil } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { X, Trash2, Pencil } from "lucide-react";
 import { GoalFormDialog } from "./goal-form-dialog";
+import { useGoals } from "@/hooks/useGoals";
 
 interface GoalDetailsProps {
   goal: any;
@@ -24,28 +17,28 @@ interface GoalDetailsProps {
 
 export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
   const queryClient = useQueryClient();
+  const { addGoalRecord } = useGoals();
   const [amount, setAmount] = useState("0,00");
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [deadlineDate, setDeadlineDate] = useState<Date | null>(
-    goal.deadline_date ? new Date(goal.deadline_date) : null
-  );
   const [editOpen, setEditOpen] = useState(false);
-  const [currentGoal, setGoal] = useState(goal)
+  const [currentGoal, setCurrentGoal] = useState(goal);
 
+  // Mutação para exclusão de meta
   const deleteGoalMutation = useMutation({
-    mutationFn: () => Finances.deleteGoal({ goalId: goal.id }),
+    mutationFn: () => Finances.deleteGoal({ goalId: currentGoal.id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       onClose();
     },
   });
 
+  // Cálculo do progresso
   const progressPercent = Math.min(
-    (goal.current_value / goal.target_value) * 100,
+    (Number(currentGoal.current_value) / Number(currentGoal.target_value)) *
+      100,
     100
   );
 
-  // === formatação moeda ===
+  // Formatação moeda
   function formatCurrency(value: number): string {
     return new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: 2,
@@ -87,6 +80,47 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
     if (amount === "0,00" || amount === "0") setAmount("");
   }
 
+  // Atualiza meta local e cache
+  async function refreshGoal() {
+    const updated = await Finances.getGoal({ goalId: currentGoal.id });
+    setCurrentGoal(updated);
+    queryClient.invalidateQueries({ queryKey: ["goals"] });
+  }
+
+  async function handleAdd() {
+    const numericValue = parseCurrency(amount);
+    if (numericValue <= 0) return;
+
+    await addGoalRecord.mutateAsync({
+      goalId: currentGoal.id,
+      data: {
+        title: `Adição em ${currentGoal.title}`,
+        value: numericValue,
+        type: "Adicionar",
+      },
+    });
+
+    setAmount("0,00");
+    await refreshGoal();
+  }
+
+  async function handleSubtract() {
+    const numericValue = parseCurrency(amount);
+    if (numericValue <= 0) return;
+
+    await addGoalRecord.mutateAsync({
+      goalId: currentGoal.id,
+      data: {
+        title: `Retirada em ${currentGoal.title}`,
+        value: numericValue,
+        type: "Retirar",
+      },
+    });
+
+    setAmount("0,00");
+    await refreshGoal();
+  }
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -100,9 +134,9 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
 
           {/* Cabeçalho */}
           <div className="mb-4">
-            <h2 className="text-2xl font-bold mb-1">{goal.title}</h2>
+            <h2 className="text-2xl font-bold mb-1">{currentGoal.title}</h2>
             <p className="text-lg text-gray-800">
-              R$ {Number(goal.target_value).toFixed(2)}
+              R$ {Number(currentGoal.target_value).toFixed(2)}
             </p>
           </div>
 
@@ -110,39 +144,25 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
           <div className="mb-4">
             <Progress value={progressPercent} className="h-4 bg-gray-200" />
             <div className="flex justify-between text-sm mt-1">
-              <span>R$ {Number(goal.current_value).toFixed(2)}</span>
-              <span>R$ {Number(goal.target_value).toFixed(2)}</span>
+              <span>R$ {Number(currentGoal.current_value).toFixed(2)}</span>
+              <span>R$ {Number(currentGoal.target_value).toFixed(2)}</span>
             </div>
+
+            {/* Data limite, se definida */}
+            {currentGoal.deadline && (
+              <p className="text-xs text-gray-500 mt-1">
+                Data definida:{" "}
+                {(() => {
+                  const [year, month, day] = currentGoal.deadline
+                    .split("-")
+                    .map(Number);
+                  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+                })()}
+              </p>
+            )}
           </div>
 
-          {/* Data limite */}
-          <div className="mb-4">
-            <label className="text-sm font-medium mb-1 block">
-              Data limite
-            </label>
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {deadlineDate
-                    ? format(deadlineDate, "dd/MM/yyyy", { locale: ptBR })
-                    : "Selecionar data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="p-0">
-                <Calendar
-                  mode="single"
-                  selected={deadlineDate ?? undefined}
-                  onSelect={(d) => setDeadlineDate(d ?? null)}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Campo de valor com lógica do FinanceCreateCard */}
+          {/* Campo de valor */}
           <div className="mb-4">
             <label className="text-sm font-medium mb-1 block">Valor (R$)</label>
             <Input
@@ -158,51 +178,15 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
           <div className="flex gap-2 mb-6">
             <Button
               className="flex-1 bg-black text-white hover:bg-gray-800"
-              onClick={async () => {
-                const numericValue = parseCurrency(amount);
-                if (numericValue <= 0) return;
-                await Finances.createFinance({
-                  goalId: goal.id,
-                  requestBody: {
-                    title: `Adição em ${goal.title}`,
-                    value: numericValue,
-                    category: "Meta",
-                    type: "Meta",
-                    status: "Pago",
-                    record_type: "Retirar",
-                  },
-                });
-                const updatedGoal = await Finances.getGoal({ goalId: goal.id });
-                queryClient.setQueryData(["goals", goal.id], updatedGoal);
-
-                setAmount("0,00");
-                setGoal(updatedGoal);
-              }}
+              onClick={handleAdd}
+              disabled={addGoalRecord.isPending}
             >
               Somar
             </Button>
             <Button
               className="flex-1 bg-red-600 text-white hover:bg-red-700"
-              onClick={async () => {
-                const numericValue = parseCurrency(amount);
-                if (numericValue <= 0) return;
-                await Finances.createFinance({
-                  goalId: goal.id,
-                  requestBody: {
-                    title: `Subtração em ${goal.title}`,
-                    value: numericValue,
-                    category: "Meta",
-                    type: "Meta",
-                    status: "Pago",
-                    record_type: "Adicionar",
-                  },
-                });
-                const updatedGoal = await Finances.getGoal({ goalId: goal.id });
-                queryClient.setQueryData(["goals", goal.id], updatedGoal);
-
-                setAmount("0,00");
-                setGoal(updatedGoal);
-              }}
+              onClick={handleSubtract}
+              disabled={addGoalRecord.isPending}
             >
               Subtrair
             </Button>
@@ -212,8 +196,8 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
           <div className="mb-6">
             <h3 className="font-bold mb-2">Histórico</h3>
             <ul className="max-h-48 overflow-y-auto space-y-1">
-              {goal.records?.length ? (
-                goal.records.map((r: any) => (
+              {currentGoal.records?.length ? (
+                currentGoal.records.map((r: any) => (
                   <li
                     key={r.id}
                     className="flex justify-between text-sm font-medium"
@@ -266,10 +250,12 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
         <GoalFormDialog
           open={editOpen}
           onClose={() => setEditOpen(false)}
-          initialData={goal}
-          onSuccess={() =>
-            queryClient.invalidateQueries({ queryKey: ["goals"] })
-          }
+          initialData={currentGoal}
+          onSuccess={async () => {
+            const updated = await Finances.getGoal({ goalId: currentGoal.id });
+            setCurrentGoal(updated);
+            setEditOpen(false);
+          }}
         />
       )}
     </>

@@ -18,8 +18,6 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useGoals } from "@/hooks/useGoals";
 
 interface GoalFormDialogProps {
@@ -46,29 +44,35 @@ export function GoalFormDialog({
   const [title, setTitle] = useState("");
   const [value, setValue] = useState<number>(0);
   const [displayValue, setDisplayValue] = useState("0,00");
-  const [deadline, setDeadline] = useState<Date | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Resetar formulário ao abrir/fechar
+  // Armazena ano/mês/dia como números
+  const [deadlineObj, setDeadlineObj] = useState<{ year: number; month: number; day: number } | null>(null);
+
+  // Resetar formulário
   useEffect(() => {
     if (open) {
       if (initialData) {
         setTitle(initialData.title ?? "");
         setValue(initialData.target_value ?? 0);
         setDisplayValue(formatCurrency(initialData.target_value ?? 0));
-        setDeadline(
-          initialData.deadline ? new Date(initialData.deadline) : null
-        );
+
+        if (initialData.deadline) {
+          const [year, month, day] = initialData.deadline.split("-").map(Number);
+          setDeadlineObj({ year, month, day });
+        } else {
+          setDeadlineObj(null);
+        }
       } else {
         setTitle("");
         setValue(0);
         setDisplayValue("0,00");
-        setDeadline(null);
+        setDeadlineObj(null);
       }
     }
   }, [open, initialData]);
 
-  // === formatação moeda ===
+  // Formatação de moeda
   function formatCurrency(value: number): string {
     return new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: 2,
@@ -82,8 +86,7 @@ export function GoalFormDialog({
   }
 
   function handleCurrencyChange(e: React.ChangeEvent<HTMLInputElement>) {
-    let rawValue = e.target.value;
-    rawValue = rawValue.replace(/[^\d,.]/g, "");
+    let rawValue = e.target.value.replace(/[^\d,.]/g, "");
     const hasDecimal = rawValue.includes(",") || rawValue.includes(".");
     if (hasDecimal) {
       rawValue = rawValue.replace(".", ",");
@@ -100,13 +103,11 @@ export function GoalFormDialog({
     }
     if (rawValue.startsWith(",")) rawValue = "0" + rawValue;
     setDisplayValue(rawValue);
-    const numericValue = parseCurrency(rawValue || "0");
-    setValue(numericValue);
+    setValue(parseCurrency(rawValue || "0"));
   }
 
   function handleCurrencyBlur() {
-    const formatted = formatCurrency(value);
-    setDisplayValue(formatted);
+    setDisplayValue(formatCurrency(value));
   }
 
   function handleCurrencyFocus() {
@@ -116,10 +117,17 @@ export function GoalFormDialog({
   function handleSubmit() {
     if (!title || value <= 0) return;
 
+    // Constrói string yyyy-MM-dd manualmente
+    let localDeadline: string | undefined;
+    if (deadlineObj) {
+      const { year, month, day } = deadlineObj;
+      localDeadline = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
     const payload = {
       title,
       target_value: value,
-      ...(deadline && { deadline: format(deadline, "yyyy-MM-dd") }),
+      ...(localDeadline && { deadline: localDeadline }),
     };
 
     const mutation = isEditing
@@ -129,13 +137,16 @@ export function GoalFormDialog({
     mutation.then(() => {
       if (onSuccess) onSuccess();
       onClose();
-      // Limpar campos após sucesso
       setTitle("");
       setValue(0);
       setDisplayValue("0,00");
-      setDeadline(null);
+      setDeadlineObj(null);
     });
   }
+
+  const deadlineDisplay = deadlineObj
+    ? `${String(deadlineObj.day).padStart(2, "0")}/${String(deadlineObj.month).padStart(2, "0")}/${deadlineObj.year}`
+    : "Selecionar data";
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -169,16 +180,23 @@ export function GoalFormDialog({
                 className="w-full justify-start text-left font-normal"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {deadline
-                  ? format(deadline, "dd/MM/yyyy", { locale: ptBR })
-                  : "Selecionar data"}
+                {deadlineDisplay}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="center" className="p-0 w-auto mx-auto">
               <Calendar
                 mode="single"
-                selected={deadline ?? undefined}
-                onSelect={(d) => setDeadline(d ?? null)}
+                selected={
+                  deadlineObj
+                    ? new Date(deadlineObj.year, deadlineObj.month - 1, deadlineObj.day)
+                    : undefined
+                }
+                onSelect={(d) => {
+                  if (!d) return;
+                  // Usa apenas ano/mês/dia, sem converter para UTC
+                  setDeadlineObj({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() });
+                  setCalendarOpen(false); // fecha automaticamente
+                }}
               />
             </PopoverContent>
           </Popover>

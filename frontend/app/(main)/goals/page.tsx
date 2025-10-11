@@ -38,10 +38,6 @@ export default function GoalsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">Metas</h1>
-          <Button variant="outline" size="sm">
-            <FileDown className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
         </div>
 
         <Button onClick={() => setCreateOpen(true)}>

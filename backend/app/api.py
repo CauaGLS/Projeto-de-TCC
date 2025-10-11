@@ -3,7 +3,7 @@ from django.core.files.storage import default_storage
 from ninja import Router, PatchDict, File
 from ninja.files import UploadedFile
 from typing import List, Optional
-
+from decimal import Decimal
 from .models import Finance, SpendingLimit, FinanceAttachment, Goal, GoalRecord
 from .schemas import (
     CreateFinanceSchema,
@@ -14,6 +14,7 @@ from .schemas import (
     FinanceAttachmentSchema,
     GoalSchema,
     CreateGoalSchema,
+    AddGoalRecordSchema,
 )
 from core.auth import AuthBearer
 
@@ -31,17 +32,6 @@ def get_finances(request):
 def create_finance(request, finance: CreateFinanceSchema, goal_id: Optional[int] = None):
     payload = finance.dict()
     finance_obj = Finance.objects.create(**payload, created_by=request.auth)
-
-    if finance.type == "Meta" and goal_id:
-        record_type = payload.get("record_type", "Adicionar")
-        goal = get_object_or_404(Goal, id=goal_id, user=request.auth)
-        GoalRecord.objects.create(
-            goal=goal,
-            title=finance.title,
-            value=finance.value,
-            type=record_type,
-            finance=finance_obj
-        )
 
     return finance_obj
 
@@ -123,16 +113,6 @@ def set_spending_limit(request, payload: CreateOrUpdateSpendingLimitSchema):
     return limit
 
 
-@router.put("/goals/{goal_id}", response=GoalSchema)
-def update_goal(request, goal_id: int, payload: CreateGoalSchema):
-    goal = get_object_or_404(Goal, id=goal_id, user=request.auth)
-    goal.title = payload.title
-    goal.target_value = payload.target_value
-    goal.deadline = payload.deadline
-    goal.save()
-    return goal
-
-
 @router.delete("/spending-limit", response={204: None})
 def delete_spending_limit(request):
     try:
@@ -152,20 +132,38 @@ def list_goals(request):
 
 @router.post("/goals", response=GoalSchema)
 def create_goal(request, payload: CreateGoalSchema):
-    return Goal.objects.create(
+    goal = Goal.objects.create(
         user=request.auth,
         title=payload.title,
         target_value=payload.target_value,
-        deadline=payload.deadline
+        deadline=payload.deadline,
     )
+    return goal
 
 
 @router.get("/goals/{goal_id}", response=GoalSchema)
 def get_goal(request, goal_id: int):
-    goal = get_object_or_404(Goal.objects.prefetch_related("records"), id=goal_id, user=request.auth)
+    goal = get_object_or_404(
+        Goal.objects.prefetch_related("records"),
+        id=goal_id,
+        user=request.auth,
+    )
     return goal
 
 
+@router.put("/goals/{goal_id}", response=GoalSchema)
+def update_goal(request, goal_id: int, payload: CreateGoalSchema):
+    goal = get_object_or_404(Goal, id=goal_id, user=request.auth)
+
+    goal.title = payload.title
+    goal.target_value = payload.target_value
+    goal.deadline = payload.deadline
+    goal.save()
+
+    return goal
+
+
+# ========= EXCLUIR META =========
 @router.delete("/goals/{goal_id}", response={204: None})
 def delete_goal(request, goal_id: int):
     goal = get_object_or_404(Goal, id=goal_id, user=request.auth)
@@ -174,14 +172,30 @@ def delete_goal(request, goal_id: int):
 
 
 @router.post("/goals/{goal_id}/records", response=GoalSchema)
-def add_goal_record(request, goal_id: int, payload: dict):
-    goal = get_object_or_404(Goal, id=goal_id, user=request.auth)
-    record_type = payload.get("type", "Adicionar")
-    value = float(payload.get("value", 0))
-    title = payload.get("title", f"{record_type} em {goal.title}")
+def add_goal_record(request, goal_id: int, payload: AddGoalRecordSchema):
 
-    GoalRecord.objects.create(goal=goal, title=title, value=value, type=record_type)
+    goal = Goal.objects.get(id=goal_id, user=request.auth)
+    value = Decimal(str(payload.value))  # ✅ converte float → Decimal
 
+    # Define o título padrão se não vier nada
+    record_title = payload.title or f"{payload.type} em {goal.title}"
+
+    # Cria o registro
+    GoalRecord.objects.create(
+        goal=goal,
+        title=record_title,
+        value=value,
+        type=payload.type,
+    )
+
+    # Atualiza o valor atual
+    if payload.type == "Adicionar":
+        goal.current_value += value
+    elif payload.type == "Retirar":
+        goal.current_value -= value
+
+    goal.save()
     goal.refresh_from_db()
-    return goal
 
+    # Retorna a meta atualizada
+    return goal

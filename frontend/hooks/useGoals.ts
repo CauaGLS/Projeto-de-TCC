@@ -18,8 +18,13 @@ export function useGoals() {
   });
 
   const updateGoal = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { title: string; target_value: number; deadline?: string } }) =>
-      Finances.updateGoal({ goalId: id, requestBody: data }),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { title: string; target_value: number; deadline?: string };
+    }) => Finances.updateGoal({ goalId: id, requestBody: data }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
   });
 
@@ -29,20 +34,19 @@ export function useGoals() {
   });
 
   const addGoalRecord = useMutation({
-  mutationFn: ({
-    goalId,
-    data,
-  }: {
-    goalId: number;
-    data: { title: string; value: number; type: "Adicionar" | "Retirar" };
-  }) =>
-    Finances.addGoalRecord({
+    mutationFn: ({
       goalId,
-      payload: data, // ← aqui está o nome correto esperado pelo SDK
-    }),
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
-});
-
+      data,
+    }: {
+      goalId: number;
+      data: { title: string; value: number; type: "Adicionar" | "Retirar" };
+    }) =>
+      Finances.addGoalRecord({
+        goalId,
+        requestBody: data,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["goals"] }),
+  });
 
   return {
     listGoals,

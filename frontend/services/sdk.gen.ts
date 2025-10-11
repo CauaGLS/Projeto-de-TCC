@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, UpdateGoalData, UpdateGoalResponse, GetGoalData, GetGoalResponse, DeleteGoalData, DeleteGoalResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, AddGoalRecordData, AddGoalRecordResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -170,60 +170,6 @@ export class Finances {
     }
     
     /**
-     * Update Goal
-     * @param data The data for the request.
-     * @param data.goalId
-     * @param data.requestBody
-     * @returns GoalSchema OK
-     * @throws ApiError
-     */
-    public static updateGoal(data: UpdateGoalData): CancelablePromise<UpdateGoalResponse> {
-        return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/goals/{goal_id}',
-            path: {
-                goal_id: data.goalId
-            },
-            body: data.requestBody,
-            mediaType: 'application/json'
-        });
-    }
-    
-    /**
-     * Get Goal
-     * @param data The data for the request.
-     * @param data.goalId
-     * @returns GoalSchema OK
-     * @throws ApiError
-     */
-    public static getGoal(data: GetGoalData): CancelablePromise<GetGoalResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/goals/{goal_id}',
-            path: {
-                goal_id: data.goalId
-            }
-        });
-    }
-    
-    /**
-     * Delete Goal
-     * @param data The data for the request.
-     * @param data.goalId
-     * @returns void No Content
-     * @throws ApiError
-     */
-    public static deleteGoal(data: DeleteGoalData): CancelablePromise<DeleteGoalResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/goals/{goal_id}',
-            path: {
-                goal_id: data.goalId
-            }
-        });
-    }
-    
-    /**
      * List Goals
      * @returns GoalSchema OK
      * @throws ApiError
@@ -252,10 +198,64 @@ export class Finances {
     }
     
     /**
+     * Get Goal
+     * @param data The data for the request.
+     * @param data.goalId
+     * @returns GoalSchema OK
+     * @throws ApiError
+     */
+    public static getGoal(data: GetGoalData): CancelablePromise<GetGoalResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/goals/{goal_id}',
+            path: {
+                goal_id: data.goalId
+            }
+        });
+    }
+    
+    /**
+     * Update Goal
+     * @param data The data for the request.
+     * @param data.goalId
+     * @param data.requestBody
+     * @returns GoalSchema OK
+     * @throws ApiError
+     */
+    public static updateGoal(data: UpdateGoalData): CancelablePromise<UpdateGoalResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/goals/{goal_id}',
+            path: {
+                goal_id: data.goalId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * Delete Goal
+     * @param data The data for the request.
+     * @param data.goalId
+     * @returns void No Content
+     * @throws ApiError
+     */
+    public static deleteGoal(data: DeleteGoalData): CancelablePromise<DeleteGoalResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/goals/{goal_id}',
+            path: {
+                goal_id: data.goalId
+            }
+        });
+    }
+    
+    /**
      * Add Goal Record
      * @param data The data for the request.
      * @param data.goalId
-     * @param data.payload
+     * @param data.requestBody
      * @returns GoalSchema OK
      * @throws ApiError
      */
@@ -266,9 +266,8 @@ export class Finances {
             path: {
                 goal_id: data.goalId
             },
-            query: {
-                payload: data.payload
-            }
+            body: data.requestBody,
+            mediaType: 'application/json'
         });
     }
 }
