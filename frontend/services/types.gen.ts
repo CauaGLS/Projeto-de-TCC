@@ -6,6 +6,10 @@ export type AddGoalRecordSchema = {
     type: string;
 };
 
+export type CreateFamilySchema = {
+    name: string;
+};
+
 export type CreateFinanceSchema = {
     title: string;
     value: number;
@@ -46,9 +50,18 @@ export type DetailFinanceSchema = {
     created_at: string;
     updated_at: string;
     attachments?: Array<FinanceAttachmentSchema>;
+    family?: (number | null);
     title: string;
     value: (number | string);
     category: string;
+};
+
+export type FamilySchema = {
+    id: number;
+    name: string;
+    code: string;
+    created_by: UserSchema;
+    created_at: string;
 };
 
 export type FinanceAttachmentSchema = {
@@ -70,6 +83,7 @@ export type FinanceSchema = {
     payment_date: (string | null);
     created_at: string;
     updated_at: string;
+    family?: (number | null);
     title: string;
     value: (number | string);
     category: string;
@@ -109,6 +123,10 @@ export type GoalSchema = {
     created_at: string;
     updated_at: string;
     records: Array<GoalRecordSchema>;
+};
+
+export type JoinFamilySchema = {
+    code: string;
 };
 
 export type SpendingLimitSchema = {
@@ -224,3 +242,19 @@ export type UploadProfilePhotoData = {
 };
 
 export type UploadProfilePhotoResponse = (UploadProfilePhotoSchema);
+
+export type CreateFamilyData = {
+    requestBody: CreateFamilySchema;
+};
+
+export type CreateFamilyResponse = (FamilySchema);
+
+export type GetFamilyResponse = ((FamilySchema | null));
+
+export type JoinFamilyData = {
+    requestBody: JoinFamilySchema;
+};
+
+export type JoinFamilyResponse = (FamilySchema);
+
+export type ListFamilyUsersResponse = (Array<UserSchema>);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useSession, authClient } from "@/lib/auth-client";
 import { useProfilePhoto } from "@/hooks/useProfilePhoto";
@@ -11,21 +11,29 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
-  const { data: session } = useSession(); // ✅ apenas leitura
+  const { data: session } = useSession();
   const user = session?.user;
   const { uploadPhoto } = useProfilePhoto();
+
+  // Estados locais
+  const [username, setUsername] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  // ✅ Atualiza estados sempre que a sessão mudar
+  useEffect(() => {
+    if (user) {
+      setUsername(user.name || "");
+      setPreview(user.image || "");
+    }
+  }, [user]);
 
   // Detecta se o login foi via Google
   const isGoogleUser =
     user?.email?.endsWith("@gmail.com") ||
     (user?.image && user.image.includes("googleusercontent"));
-
-  // Estados locais
-  const [username, setUsername] = useState(user?.name || "");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [preview, setPreview] = useState(user?.image || "");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
 
   // Handle de imagem
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -41,7 +49,7 @@ export default function SettingsPage() {
     if (!username.trim()) return;
     try {
       await authClient.updateUser({ name: username });
-      await authClient.getSession(); // ✅ força atualização local
+      await authClient.getSession(); // força atualização da sessão local
     } catch (error) {
       console.error(error);
     }
@@ -73,8 +81,8 @@ export default function SettingsPage() {
 
       if (imageUrl) {
         await authClient.updateUser({ image: imageUrl });
-        await authClient.getSession(); // ✅ atualiza sessão local
-        setPreview(imageUrl); // ✅ atualiza o preview também
+        await authClient.getSession(); // atualiza sessão local
+        setPreview(imageUrl); // atualiza o preview também
       }
     } catch (error) {
       console.error(error);
@@ -133,6 +141,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <>
+            {/* Layout de três colunas alinhado */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
               {/* Coluna 1 – Foto */}
               <div className="flex flex-col items-center justify-center space-y-4">

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse, CreateFamilyData, CreateFamilyResponse, GetFamilyResponse, JoinFamilyData, JoinFamilyResponse, ListFamilyUsersResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -273,8 +273,6 @@ export class Finances {
     
     /**
      * Upload Profile Photo
-     * Faz upload da foto de perfil do usuário autenticado,
-     * salva no MinIO e atualiza a URL no campo image do modelo User.
      * @param data The data for the request.
      * @param data.formData
      * @returns UploadProfilePhotoSchema OK
@@ -286,6 +284,62 @@ export class Finances {
             url: '/api/user/photo',
             formData: data.formData,
             mediaType: 'multipart/form-data'
+        });
+    }
+    
+    /**
+     * Create Family
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns FamilySchema OK
+     * @throws ApiError
+     */
+    public static createFamily(data: CreateFamilyData): CancelablePromise<CreateFamilyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/family',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * Get Family
+     * @returns unknown OK
+     * @throws ApiError
+     */
+    public static getFamily(): CancelablePromise<GetFamilyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/family'
+        });
+    }
+    
+    /**
+     * Join Family
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns FamilySchema OK
+     * @throws ApiError
+     */
+    public static joinFamily(data: JoinFamilyData): CancelablePromise<JoinFamilyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/family/join',
+            body: data.requestBody,
+            mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * List Family Users
+     * @returns UserSchema OK
+     * @throws ApiError
+     */
+    public static listFamilyUsers(): CancelablePromise<ListFamilyUsersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/family/users'
         });
     }
 }

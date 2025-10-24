@@ -35,7 +35,6 @@ import { Skeleton } from "./ui/skeleton"
 export function NavUser() {
   const { data: session, isPending, error } = authClient.useSession();
   const { isMobile } = useSidebar()
-
   const router = useRouter();
 
   if (isPending) return <Skeleton className="h-8 w-full" />
@@ -96,7 +95,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <IconUserCircle />
                 Conta
               </DropdownMenuItem>
@@ -106,17 +105,17 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  signOut({
-                    fetchOptions: {
-                      onSuccess: () => {
-                        router.push("/sign-in");
-                      },
+            <DropdownMenuItem
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      router.push("/sign-in");
                     },
-                  })
-                }
-              >
+                  },
+                })
+              }
+            >
               <IconLogout />
               Log out
             </DropdownMenuItem>

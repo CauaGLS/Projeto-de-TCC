@@ -109,3 +109,22 @@ class AddGoalRecordSchema(Schema):
 
 class UploadProfilePhotoSchema(BaseModel):
     photo_url: str
+
+
+# schemas.py
+
+class FamilySchema(Schema):
+    id: int
+    name: str
+    code: str
+    created_by: UserSchema
+    created_at: datetime
+
+
+class CreateFamilySchema(Schema):
+    name: str
+
+
+class JoinFamilySchema(Schema):
+    code: str
+

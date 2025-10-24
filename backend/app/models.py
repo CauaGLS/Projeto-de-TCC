@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from .types import FinanceType, FinanceStatus
+import uuid
 
 
 class User(AbstractBaseUser):
@@ -73,6 +74,7 @@ class Verification(models.Model):
 
 
 class Finance(models.Model):
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=50)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(blank=True, null=True)
@@ -137,6 +139,7 @@ class FinanceAttachment(models.Model):
 
 
 class Goal(models.Model):
+    family = models.ForeignKey("Family", on_delete=models.CASCADE, null=True, blank=True)
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="goals")
     title = models.CharField(max_length=100)
@@ -175,3 +178,29 @@ class GoalRecord(models.Model):
         )
         self.goal.current_value = total
         self.goal.save()
+
+
+class Family(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=12, unique=True, default="", blank=True)
+    created_by = models.ForeignKey("User", on_delete=models.CASCADE, related_name="created_families")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "families"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = uuid.uuid4().hex[:12].upper()
+        super().save(*args, **kwargs)
+
+
+class FamilyMember(models.Model):
+    family = models.ForeignKey(Family, on_delete=models.CASCADE, related_name="members")
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="family_memberships")
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "family_members"
+        unique_together = ("family", "user")

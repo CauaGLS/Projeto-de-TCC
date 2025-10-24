@@ -5,12 +5,10 @@ import {
   IconChartHistogram,
   IconBusinessplan,
   IconInnerShadowTop,
-  IconSettings,
   IconUsers,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -21,7 +19,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import logo from "@/public/logo.png"
 
 const data = {
   user: {
@@ -46,13 +43,6 @@ const data = {
       icon: IconUsers,
     },
   ],
-  navSecondary: [
-    {
-      title: "Configurações",
-      url: "/settings",
-      icon: IconSettings,
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -75,7 +65,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
