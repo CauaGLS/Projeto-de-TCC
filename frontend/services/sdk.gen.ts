@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -268,6 +268,24 @@ export class Finances {
             },
             body: data.requestBody,
             mediaType: 'application/json'
+        });
+    }
+    
+    /**
+     * Upload Profile Photo
+     * Faz upload da foto de perfil do usuário autenticado,
+     * salva no MinIO e atualiza a URL no campo image do modelo User.
+     * @param data The data for the request.
+     * @param data.formData
+     * @returns UploadProfilePhotoSchema OK
+     * @throws ApiError
+     */
+    public static uploadProfilePhoto(data: UploadProfilePhotoData): CancelablePromise<UploadProfilePhotoResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/user/photo',
+            formData: data.formData,
+            mediaType: 'multipart/form-data'
         });
     }
 }

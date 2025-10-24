@@ -4,6 +4,7 @@ from typing import Optional, List
 from .models import Finance, SpendingLimit, FinanceAttachment
 from .types import FinanceType, FinanceStatus
 from core.schemas import UserSchema
+from pydantic import BaseModel
 
 
 class FinanceAttachmentSchema(ModelSchema):
@@ -103,4 +104,8 @@ class CreateGoalSchema(Schema):
 class AddGoalRecordSchema(Schema):
     title: Optional[str] = None
     value: float
-    type: str  # "Adicionar" ou "Retirar"
+    type: str
+
+
+class UploadProfilePhotoSchema(BaseModel):
+    photo_url: str

@@ -119,6 +119,10 @@ export type SpendingLimitSchema = {
     updated_at: string;
 };
 
+export type UploadProfilePhotoSchema = {
+    photo_url: string;
+};
+
 export type UserSchema = {
     id: string;
     name?: (string | null);
@@ -212,3 +216,11 @@ export type AddGoalRecordData = {
 };
 
 export type AddGoalRecordResponse = (GoalSchema);
+
+export type UploadProfilePhotoData = {
+    formData: {
+        file: (Blob | File);
+    };
+};
+
+export type UploadProfilePhotoResponse = (UploadProfilePhotoSchema);

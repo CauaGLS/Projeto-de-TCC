@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.core.files.storage import default_storage
 from ninja import Router, PatchDict, File
 from ninja.files import UploadedFile
+from ninja.errors import HttpError
 from typing import List, Optional
 from decimal import Decimal
 from .models import Finance, SpendingLimit, FinanceAttachment, Goal, GoalRecord
@@ -15,6 +16,7 @@ from .schemas import (
     GoalSchema,
     CreateGoalSchema,
     AddGoalRecordSchema,
+    UploadProfilePhotoSchema,
 )
 from core.auth import AuthBearer
 
@@ -199,3 +201,37 @@ def add_goal_record(request, goal_id: int, payload: AddGoalRecordSchema):
 
     # Retorna a meta atualizada
     return goal
+
+
+# ========= FOTO DE PERFIL =========
+
+@router.post("/user/photo", response=UploadProfilePhotoSchema)
+def upload_profile_photo(request, file: UploadedFile = File(...)):
+    """
+    Faz upload da foto de perfil do usuário autenticado,
+    salva no MinIO e atualiza a URL no campo image do modelo User.
+    """
+    user = request.auth
+    if not user:
+        # Retorna um erro padrão compatível com Ninja
+        raise HttpError(401, "Usuário não autenticado")
+
+    try:
+        # Caminho do arquivo no MinIO (automático, sem precisar criar pasta)
+        file_path = f"profile_photos/{user.id}/{file.name}"
+
+        # Salva usando o storage padrão (MinIO)
+        saved_path = default_storage.save(file_path, file)
+
+        # Gera URL pública
+        file_url = default_storage.url(saved_path)
+
+        # Atualiza o usuário com a nova imagem
+        user.image = file_url
+        user.save(update_fields=["image"])
+
+        # Retorna no formato compatível com o schema
+        return {"photo_url": file_url}
+
+    except Exception as e:
+        raise HttpError(500, f"Erro ao enviar imagem: {str(e)}")
