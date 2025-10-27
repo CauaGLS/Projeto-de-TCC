@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from django.core.files.storage import default_storage
-from django.db import models
 from ninja import Router, PatchDict, File
 from ninja.files import UploadedFile
 from ninja.errors import HttpError
@@ -40,26 +39,25 @@ def get_user_family(request):
 
 @router.get("/finances", response=List[FinanceSchema])
 def get_finances(request):
-    family = get_user_family(request)
-    if family:
-        # Usuário pertence a uma família → vê dados da família
-        return Finance.objects.filter(models.Q(family=family)).select_related("created_by")
-    # Caso contrário, vê apenas os próprios registros
-    return Finance.objects.filter(created_by=request.auth).select_related("created_by")
+    user = request.auth
+
+    family_member = FamilyMember.objects.filter(user=user).select_related("family").first()
+
+    if family_member:
+        family_users = FamilyMember.objects.filter(family=family_member.family).values_list("user", flat=True)
+        finances = Finance.objects.filter(created_by__in=family_users).select_related("created_by")
+    else:
+        finances = Finance.objects.filter(created_by=user).select_related("created_by")
+
+    return finances
 
 
 @router.post("/finances", response=FinanceSchema)
 def create_finance(request, finance: CreateFinanceSchema, goal_id: Optional[int] = None):
     payload = finance.dict()
-    family = get_user_family(request)
-
-    finance_obj = Finance.objects.create(
-        **payload,
-        created_by=request.auth,
-        family=family,  # vincula à família, se existir
-    )
-
+    finance_obj = Finance.objects.create(**payload, created_by=request.auth)
     return finance_obj
+
 
 
 @router.get("/finances/{finance_id}", response=DetailFinanceSchema)
@@ -167,10 +165,16 @@ def delete_spending_limit(request):
 
 @router.get("/goals", response=List[GoalSchema])
 def list_goals(request):
-    family = get_user_family(request)
-    if family:
-        return Goal.objects.filter(family=family).prefetch_related("records")
-    return Goal.objects.filter(user=request.auth).prefetch_related("records")
+    user = request.auth
+    family_member = FamilyMember.objects.filter(user=user).select_related("family").first()
+
+    if family_member:
+        family_users = FamilyMember.objects.filter(family=family_member.family).values_list("user", flat=True)
+        goals = Goal.objects.filter(user__in=family_users).prefetch_related("records")
+    else:
+        goals = Goal.objects.filter(user=user).prefetch_related("records")
+
+    return goals
 
 
 @router.post("/goals", response=GoalSchema)
@@ -292,3 +296,46 @@ def list_family_users(request):
     if not family:
         return []
     return [m.user for m in family.members.select_related("user")]
+
+
+@router.post("/family/leave", response={204: None})
+def leave_family(request):
+
+    membership = FamilyMember.objects.filter(user=request.auth).first()
+    if not membership:
+        raise HttpError(404, "Você não pertence a nenhuma família.")
+
+    family = membership.family
+    if family.created_by == request.auth:
+        members_count = FamilyMember.objects.filter(family=family).count()
+        if members_count > 1:
+            raise HttpError(400, "O criador não pode sair enquanto houver outros membros.")
+        else:
+            family.delete()
+            return 204, None
+
+    membership.delete()
+    return 204, None
+
+
+@router.delete("/family/remove/{user_id}", response={204: None})
+def remove_family_member(request, user_id: str):
+
+    membership = FamilyMember.objects.filter(user=request.auth).select_related("family").first()
+    if not membership:
+        raise HttpError(403, "Você não pertence a nenhuma família.")
+
+    family = membership.family
+
+    if family.created_by != request.auth:
+        raise HttpError(403, "Apenas o criador da família pode remover membros.")
+
+    if request.auth.id == user_id:
+        raise HttpError(400, "Você não pode se remover por este método. Use /family/leave.")
+
+    member_to_remove = FamilyMember.objects.filter(family=family, user_id=user_id).first()
+    if not member_to_remove:
+        raise HttpError(404, "Usuário não encontrado na família.")
+
+    member_to_remove.delete()
+    return 204, None

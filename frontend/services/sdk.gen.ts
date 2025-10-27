@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse, CreateFamilyData, CreateFamilyResponse, GetFamilyResponse, JoinFamilyData, JoinFamilyResponse, ListFamilyUsersResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse, CreateFamilyData, CreateFamilyResponse, GetFamilyResponse, JoinFamilyData, JoinFamilyResponse, ListFamilyUsersResponse, LeaveFamilyResponse, RemoveFamilyMemberData, RemoveFamilyMemberResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -340,6 +340,35 @@ export class Finances {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/family/users'
+        });
+    }
+    
+    /**
+     * Leave Family
+     * @returns void No Content
+     * @throws ApiError
+     */
+    public static leaveFamily(): CancelablePromise<LeaveFamilyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/family/leave'
+        });
+    }
+    
+    /**
+     * Remove Family Member
+     * @param data The data for the request.
+     * @param data.userId
+     * @returns void No Content
+     * @throws ApiError
+     */
+    public static removeFamilyMember(data: RemoveFamilyMemberData): CancelablePromise<RemoveFamilyMemberResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/family/remove/{user_id}',
+            path: {
+                user_id: data.userId
+            }
         });
     }
 }

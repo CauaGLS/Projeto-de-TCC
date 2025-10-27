@@ -258,3 +258,11 @@ export type JoinFamilyData = {
 export type JoinFamilyResponse = (FamilySchema);
 
 export type ListFamilyUsersResponse = (Array<UserSchema>);
+
+export type LeaveFamilyResponse = (void);
+
+export type RemoveFamilyMemberData = {
+    userId: string;
+};
+
+export type RemoveFamilyMemberResponse = (void);
