@@ -4,7 +4,6 @@ import {
   IconCreditCard,
   IconDotsVertical,
   IconLogout,
-  IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react"
 
@@ -98,10 +97,6 @@ export function NavUser() {
               <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <IconUserCircle />
                 Conta
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

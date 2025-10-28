@@ -143,9 +143,9 @@ export type UploadProfilePhotoSchema = {
 
 export type UserSchema = {
     id: string;
+    image?: (string | null);
     name?: (string | null);
     email: string;
-    image?: (string | null);
 };
 
 export type GetFinancesResponse = (Array<FinanceSchema>);

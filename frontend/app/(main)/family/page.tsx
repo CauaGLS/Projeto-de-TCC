@@ -17,6 +17,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { UserMinus } from "lucide-react";
 
 export default function FamilyPage() {
   const { data: session } = useSession();
@@ -181,8 +182,8 @@ export default function FamilyPage() {
                 key={user.id}
                 className="flex items-center justify-between border rounded-lg p-3 hover:bg-muted/50 transition"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar>
+                <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+                  <Avatar className="flex-shrink-0">
                     <AvatarImage
                       src={user.image || undefined}
                       alt={user.name || "Usuário"}
@@ -191,9 +192,10 @@ export default function FamilyPage() {
                       {user.name?.slice(0, 2).toUpperCase() ?? "??"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">
+
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="font-medium truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {user.email}
                     </p>
                   </div>
@@ -210,8 +212,9 @@ export default function FamilyPage() {
                         onError: () => toast.error("Erro ao remover membro."),
                       })
                     }
+                    className="flex-shrink-0 ml-2"
                   >
-                    Expulsar
+                    <UserMinus className="w-4 h-4" />
                   </Button>
                 )}
               </div>

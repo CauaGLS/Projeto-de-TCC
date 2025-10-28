@@ -5,6 +5,7 @@ from ninja.files import UploadedFile
 from ninja.errors import HttpError
 from typing import List, Optional
 from decimal import Decimal
+from django.conf import settings
 from .models import Finance, SpendingLimit, FinanceAttachment, Goal, GoalRecord, Family, FamilyMember
 from .schemas import (
     CreateFinanceSchema,
@@ -23,16 +24,32 @@ from .schemas import (
 )
 from core.auth import AuthBearer
 from core.schemas import UserSchema
+from app.storage_backend import PublicMediaStorage
 
 router = Router(tags=["Finances"], auth=AuthBearer())
 
 
-# ========= Função auxiliar =========
+# ========= Funções auxiliares =========
 
 def get_user_family(request):
-    """Retorna a família do usuário autenticado (se houver)"""
+    """Retorna a família do usuário autenticado (se houver)."""
     membership = FamilyMember.objects.filter(user=request.auth).select_related("family").first()
     return membership.family if membership else None
+
+
+def get_user_image_url(user):
+    """Retorna a URL completa da imagem do usuário (caso exista)."""
+    if not user.image:
+        return None
+
+    # Se já for uma URL completa (Google, GitHub, etc.), retorna direto
+    if user.image.startswith("http://") or user.image.startswith("https://"):
+        return user.image
+
+    try:
+        return default_storage.url(user.image)
+    except Exception:
+        return None
 
 
 # ========= Finanças =========
@@ -59,12 +76,11 @@ def create_finance(request, finance: CreateFinanceSchema, goal_id: Optional[int]
     return finance_obj
 
 
-
 @router.get("/finances/{finance_id}", response=DetailFinanceSchema)
 def get_finance(request, finance_id: int):
     finance = get_object_or_404(Finance.objects.prefetch_related("attachments"), id=finance_id)
 
-    # segurança: garante que o usuário tem acesso
+    # Segurança: garante que o usuário tem acesso
     family = get_user_family(request)
     if finance.created_by != request.auth and finance.family != family:
         raise HttpError(403, "Acesso negado")
@@ -254,12 +270,24 @@ def upload_profile_photo(request, file: UploadedFile = File(...)):
         raise HttpError(401, "Usuário não autenticado")
 
     try:
-        file_path = f"profile_photos/{user.id}/{file.name}"
-        saved_path = default_storage.save(file_path, file)
-        file_url = default_storage.url(saved_path)
+        # Usa o storage público
+        storage = PublicMediaStorage()
+
+        # caminho relativo dentro do bucket (sem duplicar o prefixo)
+        file_path = f"{user.id}/{file.name}"
+
+        # salva no bucket na pasta 'profile_photos'
+        saved_path = storage.save(file_path, file)
+
+        # gera URL pública permanente (funciona no MinIO local)
+        file_url = f"{settings.AWS_S3_ENDPOINT_URL.replace('http://', '').replace('https://', '')}/{settings.AWS_STORAGE_BUCKET_NAME}/{storage.location}/{saved_path}"
+        file_url = f"http://{file_url}"
+
         user.image = file_url
         user.save(update_fields=["image"])
+
         return {"photo_url": file_url}
+
     except Exception as e:
         raise HttpError(500, f"Erro ao enviar imagem: {str(e)}")
 
@@ -275,8 +303,7 @@ def create_family(request, payload: CreateFamilySchema):
 
 @router.get("/family", response=Optional[FamilySchema])
 def get_family(request):
-    family = get_user_family(request)
-    return family
+    return get_user_family(request)
 
 
 @router.post("/family/join", response=FamilySchema)
@@ -295,12 +322,17 @@ def list_family_users(request):
     family = get_user_family(request)
     if not family:
         return []
-    return [m.user for m in family.members.select_related("user")]
+
+    users = []
+    for member in family.members.select_related("user"):
+        user = member.user
+        user.image = get_user_image_url(user)
+        users.append(user)
+    return users
 
 
 @router.post("/family/leave", response={204: None})
 def leave_family(request):
-
     membership = FamilyMember.objects.filter(user=request.auth).first()
     if not membership:
         raise HttpError(404, "Você não pertence a nenhuma família.")
@@ -320,13 +352,11 @@ def leave_family(request):
 
 @router.delete("/family/remove/{user_id}", response={204: None})
 def remove_family_member(request, user_id: str):
-
     membership = FamilyMember.objects.filter(user=request.auth).select_related("family").first()
     if not membership:
         raise HttpError(403, "Você não pertence a nenhuma família.")
 
     family = membership.family
-
     if family.created_by != request.auth:
         raise HttpError(403, "Apenas o criador da família pode remover membros.")
 

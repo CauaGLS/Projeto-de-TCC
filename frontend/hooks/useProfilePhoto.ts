@@ -7,10 +7,12 @@ export function useProfilePhoto() {
   const queryClient = useQueryClient();
 
   const uploadPhoto = useMutation({
-    mutationFn: (file: File) => {
-      return Finances.uploadProfilePhoto({
+    mutationFn: async (file: File) => {
+      const response = await Finances.uploadProfilePhoto({
         formData: { file },
       });
+      // 🔹 Retorna diretamente o photo_url do backend
+      return (response as any)?.photo_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });

@@ -153,12 +153,21 @@ STORAGES = {
     },
 }
 
+# Configurações do MinIO / S3
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "financas-bucket")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "http://localhost:9000")
 AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
 
-# expiração de URLs temporárias (1h)
+# URLs temporárias (expiram em 1h) para anexos
+AWS_QUERYSTRING_AUTH = True
 AWS_QUERYSTRING_EXPIRE = 3600
 
+# Arquivos padrão (privados)
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+# Arquivos públicos (ex: fotos de perfil)
+AWS_PUBLIC_MEDIA_LOCATION = "profile_photos"
+AWS_PUBLIC_MEDIA_DEFAULT_ACL = "public-read"
+PUBLIC_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
