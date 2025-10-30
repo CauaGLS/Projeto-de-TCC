@@ -369,3 +369,26 @@ def remove_family_member(request, user_id: str):
 
     member_to_remove.delete()
     return 204, None
+
+
+# ========= Excluir conta =========
+
+@router.delete("/user/delete", response={204: None})
+def delete_user_account(request):
+    user = request.auth
+
+    # Deleta registros relacionados
+    Finance.objects.filter(created_by=user).delete()
+    SpendingLimit.objects.filter(user=user).delete()
+    Goal.objects.filter(user=user).delete()
+    FamilyMember.objects.filter(user=user).delete()
+    Family.objects.filter(created_by=user).delete()
+
+    # Por segurança, deleta sessões e contas externas
+    from .models import Session, Account
+    Session.objects.filter(user=user).delete()
+    Account.objects.filter(user=user).delete()
+
+    # Finalmente, deleta o usuário
+    user.delete()
+    return 204, None

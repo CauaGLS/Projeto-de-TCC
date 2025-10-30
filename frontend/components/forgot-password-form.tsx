@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
@@ -17,17 +18,29 @@ export function ForgotPasswordForm() {
     setLoading(true)
     setMessage(null)
 
-    const { data, error } = await authClient.requestPasswordReset({
-      email,
-      redirectTo: `${window.location.origin}/reset-password`,
-    })
+    try {
 
-    setLoading(false)
+      const { data, error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
 
-    if (error) {
-      setMessage(error.message || "Erro ao enviar email de recuperação")
-    } else {
-      setMessage("Um link foi enviado para o email fornecido.")
+      setLoading(false)
+
+      if (error) {
+        const msg = error.message || "E-mail não encontrado."; // MSG018
+        setMessage(msg)
+        toast.error(msg)
+      } else {
+        const ok = "Um link foi enviado para o email fornecido." // custom confirm
+        setMessage(ok)
+        toast.success(ok)
+      }
+    } catch (err: any) {
+      setLoading(false)
+      const msg = err?.message || "Erro ao enviar email de recuperação."
+      setMessage(msg)
+      toast.error(msg)
     }
   }
 

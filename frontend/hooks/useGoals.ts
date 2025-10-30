@@ -3,12 +3,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Finances } from "@/services";
 
-export function useGoals() {
+export function useGoals(userExists: boolean) { // <-- recebe o parâmetro
   const queryClient = useQueryClient();
 
   const listGoals = useQuery({
     queryKey: ["goals"],
     queryFn: () => Finances.listGoals(),
+    enabled: userExists, // 🔥 agora userExists existe aqui
   });
 
   const createGoal = useMutation({

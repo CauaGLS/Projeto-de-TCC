@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Finances } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -21,24 +22,23 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
   const [amount, setAmount] = useState("0,00");
   const [editOpen, setEditOpen] = useState(false);
   const [currentGoal, setCurrentGoal] = useState(goal);
+  const notifiedRef = useRef<{
+    deadlineWarning?: boolean;
+    deadlineReached?: boolean;
+  }>({});
 
   // Mutação para exclusão de meta
   const deleteGoalMutation = useMutation({
     mutationFn: () => Finances.deleteGoal({ goalId: currentGoal.id }),
     onSuccess: () => {
+      toast.success(`Meta "${currentGoal.title}" excluída com sucesso.`);
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       onClose();
     },
+    onError: () => toast.error("Erro ao excluir a meta. Tente novamente."),
   });
 
-  // Cálculo do progresso
-  const progressPercent = Math.min(
-    (Number(currentGoal.current_value) / Number(currentGoal.target_value)) *
-      100,
-    100
-  );
-
-  // Formatação moeda
+  // --- Funções auxiliares (moeda) ---
   function formatCurrency(value: number): string {
     return new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: 2,
@@ -80,46 +80,119 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
     if (amount === "0,00" || amount === "0") setAmount("");
   }
 
-  // Atualiza meta local e cache
   async function refreshGoal() {
     const updated = await Finances.getGoal({ goalId: currentGoal.id });
     setCurrentGoal(updated);
     queryClient.invalidateQueries({ queryKey: ["goals"] });
   }
 
+  // --- Adicionar valor ---
   async function handleAdd() {
     const numericValue = parseCurrency(amount);
-    if (numericValue <= 0) return;
+    if (numericValue <= 0) {
+      toast.warning("Informe um valor válido para adicionar.");
+      return;
+    }
 
-    await addGoalRecord.mutateAsync({
-      goalId: currentGoal.id,
-      data: {
-        title: `Adição em ${currentGoal.title}`,
-        value: numericValue,
-        type: "Adicionar",
-      },
-    });
-
-    setAmount("0,00");
-    await refreshGoal();
+    try {
+      await addGoalRecord.mutateAsync({
+        goalId: currentGoal.id,
+        data: {
+          title: `Adição em ${currentGoal.title}`,
+          value: numericValue,
+          type: "Adicionar",
+        },
+      });
+      toast.success("Valor adicionado à meta com sucesso!");
+      setAmount("0,00");
+      await refreshGoal();
+    } catch {
+      toast.error("Erro ao adicionar valor à meta.");
+    }
   }
 
+  // --- Subtrair valor ---
   async function handleSubtract() {
     const numericValue = parseCurrency(amount);
-    if (numericValue <= 0) return;
+    if (numericValue <= 0) {
+      toast.warning("Informe um valor válido para subtrair.");
+      return;
+    }
 
-    await addGoalRecord.mutateAsync({
-      goalId: currentGoal.id,
-      data: {
-        title: `Retirada em ${currentGoal.title}`,
-        value: numericValue,
-        type: "Retirar",
-      },
-    });
-
-    setAmount("0,00");
-    await refreshGoal();
+    try {
+      await addGoalRecord.mutateAsync({
+        goalId: currentGoal.id,
+        data: {
+          title: `Retirada em ${currentGoal.title}`,
+          value: numericValue,
+          type: "Retirar",
+        },
+      });
+      toast.success("Valor removido da meta com sucesso!");
+      setAmount("0,00");
+      await refreshGoal();
+    } catch {
+      toast.error("Erro ao remover valor da meta.");
+    }
   }
+
+  // --- Cálculo do progresso (sempre usar currentGoal atualizado) ---
+  const progressPercent = Math.min(
+    (Number(currentGoal?.current_value || 0) /
+      Number(currentGoal?.target_value || 1)) *
+      100,
+    100
+  );
+
+  // --- Verificação automática de prazo e de alcance da meta ---
+  // --- Verificação automática de prazo e de alcance da meta ---
+  useEffect(() => {
+    const rawDeadline = currentGoal?.deadline ?? null;
+
+    if (!rawDeadline) return;
+
+    // Aceita formatos "YYYY-MM-DD" ou ISO
+    let deadlineDate: Date;
+    try {
+      deadlineDate = new Date(`${rawDeadline}T00:00:00`);
+      deadlineDate.setHours(0, 0, 0, 0);
+    } catch {
+      return;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const diffMs = deadlineDate.getTime() - now.getTime();
+    const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysLeft <= 0) {
+      if (!notifiedRef.current.deadlineReached) {
+        notifiedRef.current.deadlineReached = true;
+
+        const reached =
+          Number(currentGoal?.current_value || 0) >=
+          Number(currentGoal?.target_value || 0);
+
+        if (reached) {
+          toast.success(
+            `A meta "${currentGoal.title}" foi alcançada até a data limite 🎉`
+          );
+        } else {
+          toast.error(
+            `A data limite da meta "${currentGoal.title}" foi alcançada e a meta não foi atingida.`
+          );
+        }
+      }
+    } else if (daysLeft <= 3) {
+      if (!notifiedRef.current.deadlineWarning) {
+        notifiedRef.current.deadlineWarning = true;
+        toast.warning(
+          `A data limite da meta "${currentGoal.title}" está próxima: faltam ${daysLeft} dia(s).`
+        );
+      }
+    }
+  }, [currentGoal]);
 
   return (
     <>
@@ -148,15 +221,26 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
               <span>R$ {Number(currentGoal.target_value).toFixed(2)}</span>
             </div>
 
-            {/* Data limite, se definida */}
             {currentGoal.deadline && (
               <p className="text-xs text-gray-500 mt-1">
                 Data definida:{" "}
                 {(() => {
-                  const [year, month, day] = currentGoal.deadline
-                    .split("-")
-                    .map(Number);
-                  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+                  // tenta suportar formatos YYYY-MM-DD ou ISO
+                  const raw = currentGoal.deadline ?? currentGoal.deadline_date;
+                  if (!raw) return "";
+                  const d = raw.split ? raw.split("-").map(Number) : null;
+                  if (d && d.length === 3) {
+                    const [year, month, day] = d;
+                    return `${String(day).padStart(2, "0")}/${String(
+                      month
+                    ).padStart(2, "0")}/${year}`;
+                  }
+                  try {
+                    const parsed = new Date(raw);
+                    return parsed.toLocaleDateString("pt-BR");
+                  } catch {
+                    return String(raw);
+                  }
                 })()}
               </p>
             )}
@@ -255,6 +339,8 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
             const updated = await Finances.getGoal({ goalId: currentGoal.id });
             setCurrentGoal(updated);
             setEditOpen(false);
+            // reset notifications so user can get warnings again if date approaches
+            notifiedRef.current = {};
           }}
         />
       )}

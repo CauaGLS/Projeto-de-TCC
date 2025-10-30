@@ -57,7 +57,7 @@ export default function FamilyPage() {
       { code: joinCode },
       {
         onSuccess: () => {
-          toast.success("Você entrou na família com sucesso!");
+          toast.success("Você entrou na família!");
           setJoinCode("");
         },
         onError: () => toast.error("Código inválido."),

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse, CreateFamilyData, CreateFamilyResponse, GetFamilyResponse, JoinFamilyData, JoinFamilyResponse, ListFamilyUsersResponse, LeaveFamilyResponse, RemoveFamilyMemberData, RemoveFamilyMemberResponse } from './types.gen';
+import type { GetFinancesResponse, CreateFinanceData, CreateFinanceResponse, GetFinanceData, GetFinanceResponse, UpdateFinanceData, UpdateFinanceResponse, DeleteFinanceData, DeleteFinanceResponse, UploadFinanceAttachmentsData, UploadFinanceAttachmentsResponse, DeleteFinanceAttachmentData, DeleteFinanceAttachmentResponse, GetSpendingLimitResponse, SetSpendingLimitData, SetSpendingLimitResponse, DeleteSpendingLimitResponse, ListGoalsResponse, CreateGoalData, CreateGoalResponse, GetGoalData, GetGoalResponse, UpdateGoalData, UpdateGoalResponse, DeleteGoalData, DeleteGoalResponse, AddGoalRecordData, AddGoalRecordResponse, UploadProfilePhotoData, UploadProfilePhotoResponse, CreateFamilyData, CreateFamilyResponse, GetFamilyResponse, JoinFamilyData, JoinFamilyResponse, ListFamilyUsersResponse, LeaveFamilyResponse, RemoveFamilyMemberData, RemoveFamilyMemberResponse, DeleteUserAccountResponse } from './types.gen';
 
 export class Finances {
     /**
@@ -369,6 +369,18 @@ export class Finances {
             path: {
                 user_id: data.userId
             }
+        });
+    }
+    
+    /**
+     * Delete User Account
+     * @returns void No Content
+     * @throws ApiError
+     */
+    public static deleteUserAccount(): CancelablePromise<DeleteUserAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/user/delete'
         });
     }
 }

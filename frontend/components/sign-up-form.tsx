@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
@@ -23,20 +24,37 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     setLoading(true);
     setError(null);
 
-    const { error: signupError } = await authClient.signUp.email({
-      name,
-      email,
-      password,
-    });
+    try {
 
-    setLoading(false);
+      const { error: signupError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+      });
 
-    if (signupError) {
-      setError(signupError.message || "Erro ao criar conta");
-      return;
+      setLoading(false);
+
+      if (signupError) {
+        const msg = signupError.message || "Erro ao criar conta.";
+        // Possíveis mensagens: usuário já cadastrado
+        if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
+          toast.error("Usuário já cadastrado."); // MSG012
+          setError("Usuário já cadastrado.");
+        } else {
+          toast.error(msg);
+          setError(msg);
+        }
+        return;
+      }
+
+      toast.success("Usuário cadastrado com sucesso!"); // MSG004
+      router.push("/");
+    } catch (err: any) {
+      setLoading(false);
+      const msg = err?.message || "Erro ao criar conta";
+      setError(msg);
+      toast.error(msg);
     }
-
-    router.push("/");
   }
 
   return (
@@ -53,7 +71,10 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn.social({ provider: "google" })}
+                  onClick={() => {
+                    toast.loading("Redirecionando para Google...");
+                    signIn.social({ provider: "google" });
+                  }}
                 >
                   <GoogleIcon />
                   Cadastrar com Google

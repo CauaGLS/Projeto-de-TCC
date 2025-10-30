@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -22,25 +23,42 @@ export function ResetPasswordForm() {
     e.preventDefault()
     setError(null)
 
+    if (password.length < 6) {
+      setError("A senha deve ter no mínimo 8 caracteres.")
+      toast.error("A senha deve ter no mínimo 8 caracteres.")
+      return
+    }
+
     if (password !== confirmPassword) {
-      setError("As senhas não conferem")
+      setError("As senhas não conferem.")
+      toast.error("As senhas não conferem.")
       return
     }
 
     setLoading(true)
     
-    const { error } = await authClient.resetPassword({
-      token: token || "",
-      newPassword: password,
-    })
-    setLoading(false)
+    try {
+      const { error } = await authClient.resetPassword({
+        token: token || "",
+        newPassword: password,
+      })
+      setLoading(false)
 
-    if (error) {
-      setError(error.message || "Erro ao redefinir senha")
-      return
+      if (error) {
+        const msg = error.message || "Erro ao redefinir senha."
+        setError(msg)
+        toast.error(msg)
+        return
+      }
+
+      toast.success("Senha redefinida.") // MSG011
+      router.push("/sign-in")
+    } catch (err: any) {
+      setLoading(false)
+      const msg = err?.message || "Erro ao redefinir senha."
+      setError(msg)
+      toast.error(msg)
     }
-
-    router.push("/sign-in")
   }
 
   if (!token) {

@@ -4,10 +4,10 @@ import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Finances } from "@/services"
 import { Button } from "@/components/ui/button"
-import { FileDown, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { GoalCard } from "@/components/goal-card"
-import GoalDetailsDialog from "@/components/goal-details-dialog"
 import { GoalFormDialog } from "@/components/goal-form-dialog"
+import GoalDetailsDialog from "@/components/goal-details-dialog"
 
 export default function GoalsPage() {
   const queryClient = useQueryClient()

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 
 import { authClient, signIn } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function SignInForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
@@ -23,21 +24,31 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
     setLoading(true);
     setError(null);
 
-    const { data, error: signinError } = await authClient.signIn.email({
-      email,
-      password,
-      rememberMe: true,
-      callbackURL: window.location.pathname,
-    });
+    try {
 
-    setLoading(false);
+      const { data, error: signinError } = await authClient.signIn.email({
+        email,
+        password,
+        rememberMe: true,
+        callbackURL: window.location.pathname,
+      });
 
-    if (signinError) {
-      setError(signinError.message || "Erro ao autenticar");
-      return;
+      setLoading(false);
+
+      if (signinError) {
+        toast.error("E-mail e/ou senha incorretos."); // MSG003
+        setError("E-mail e/ou senha incorretos."); // MSG003
+        return;
+      }
+
+      toast.success("Autenticado com sucesso!"); // custom success
+      router.push("/");
+    } catch (err: any) {
+      setLoading(false);
+      const msg = err?.message || "Erro ao autenticar.";
+      setError(msg);
+      toast.error(msg);
     }
-
-    router.push("/");
   }
 
   return (
@@ -54,7 +65,10 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn.social({ provider: "google", callbackURL: window.location.pathname })}
+                  onClick={() => {
+                    toast.loading("Redirecionando para Google...");
+                    signIn.social({ provider: "google", callbackURL: window.location.pathname });
+                  }}
                 >
                   <GoogleIcon />
                   Entrar com Google

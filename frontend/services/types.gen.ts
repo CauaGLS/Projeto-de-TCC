@@ -266,3 +266,5 @@ export type RemoveFamilyMemberData = {
 };
 
 export type RemoveFamilyMemberResponse = (void);
+
+export type DeleteUserAccountResponse = (void);

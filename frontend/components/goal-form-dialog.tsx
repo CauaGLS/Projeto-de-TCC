@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,11 +46,8 @@ export function GoalFormDialog({
   const [value, setValue] = useState<number>(0);
   const [displayValue, setDisplayValue] = useState("0,00");
   const [calendarOpen, setCalendarOpen] = useState(false);
-
-  // Armazena ano/mês/dia como números
   const [deadlineObj, setDeadlineObj] = useState<{ year: number; month: number; day: number } | null>(null);
 
-  // Resetar formulário
   useEffect(() => {
     if (open) {
       if (initialData) {
@@ -72,7 +70,6 @@ export function GoalFormDialog({
     }
   }, [open, initialData]);
 
-  // Formatação de moeda
   function formatCurrency(value: number): string {
     return new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: 2,
@@ -114,10 +111,12 @@ export function GoalFormDialog({
     if (displayValue === "0,00" || displayValue === "0") setDisplayValue("");
   }
 
-  function handleSubmit() {
-    if (!title || value <= 0) return;
+  async function handleSubmit() {
+    if (!title || value <= 0) {
+      toast.error("Preencha o título e o valor da meta corretamente.");
+      return;
+    }
 
-    // Constrói string yyyy-MM-dd manualmente
     let localDeadline: string | undefined;
     if (deadlineObj) {
       const { year, month, day } = deadlineObj;
@@ -130,18 +129,24 @@ export function GoalFormDialog({
       ...(localDeadline && { deadline: localDeadline }),
     };
 
-    const mutation = isEditing
-      ? updateGoal.mutateAsync({ id: initialData!.id!, data: payload })
-      : createGoal.mutateAsync(payload);
+    try {
+      if (isEditing) {
+        await updateGoal.mutateAsync({ id: initialData!.id!, data: payload });
+        toast.success("Meta atualizada com sucesso!");
+      } else {
+        await createGoal.mutateAsync(payload);
+        toast.success("Meta criada com sucesso!");
+      }
 
-    mutation.then(() => {
       if (onSuccess) onSuccess();
       onClose();
       setTitle("");
       setValue(0);
       setDisplayValue("0,00");
       setDeadlineObj(null);
-    });
+    } catch {
+      toast.error("Erro ao salvar a meta.");
+    }
   }
 
   const deadlineDisplay = deadlineObj
@@ -193,9 +198,9 @@ export function GoalFormDialog({
                 }
                 onSelect={(d) => {
                   if (!d) return;
-                  // Usa apenas ano/mês/dia, sem converter para UTC
                   setDeadlineObj({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() });
-                  setCalendarOpen(false); // fecha automaticamente
+                  setCalendarOpen(false);
+                  toast.info("Data limite definida para " + d.toLocaleDateString("pt-BR"));
                 }}
               />
             </PopoverContent>
@@ -203,10 +208,7 @@ export function GoalFormDialog({
         </div>
 
         <DialogFooter className="pt-4">
-          <Button
-            onClick={handleSubmit}
-            disabled={createGoal.isPending || updateGoal.isPending}
-          >
+          <Button onClick={handleSubmit}>
             {isEditing ? "Salvar Alterações" : "Criar Meta"}
           </Button>
           <Button variant="outline" onClick={onClose}>
