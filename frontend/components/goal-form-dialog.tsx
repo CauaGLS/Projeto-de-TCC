@@ -39,7 +39,7 @@ export function GoalFormDialog({
   initialData,
   onSuccess,
 }: GoalFormDialogProps) {
-  const { createGoal, updateGoal } = useGoals();
+  const { createGoal, updateGoal } = useGoals(true);
   const isEditing = !!initialData?.id;
 
   const [title, setTitle] = useState("");

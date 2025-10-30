@@ -45,15 +45,15 @@ export function useGoalNotifications(userExists: boolean) {
 
       // 🔔 Regras de notificação
       if (current_value >= target_value) {
-        notifyOnce("goal-achieved", `🎉 Meta "${title}" atingida com sucesso!`, "success")
+        notifyOnce("goal-achieved", `Meta "${title}" atingida com sucesso!`, "success")
       } else if (daysLeft === 0) {
-        notifyOnce("deadline-today", `⏰ Hoje é o prazo final da meta "${title}"!`, "warning")
+        notifyOnce("deadline-today", `Hoje é o prazo final da meta "${title}"!`, "warning")
       } else if (daysLeft === 1) {
-        notifyOnce("deadline-tomorrow", `⚠️ A meta "${title}" termina amanhã.`, "warning")
+        notifyOnce("deadline-tomorrow", `A meta "${title}" termina amanhã.`, "warning")
       } else if (daysLeft > 1 && daysLeft <= 3) {
-        notifyOnce("deadline-soon", `📅 Restam ${daysLeft} dias para o fim da meta "${title}".`, "info")
+        notifyOnce("deadline-soon", `Restam ${daysLeft} dias para o fim da meta "${title}".`, "info")
       } else if (daysLeft < 0 && current_value < target_value) {
-        notifyOnce("deadline-expired", `❌ A meta "${title}" passou do prazo e não foi concluída.`, "error")
+        notifyOnce("deadline-expired", `A meta "${title}" passou do prazo e não foi concluída.`, "error")
       }
     })
   }, [listGoals?.data, userExists])

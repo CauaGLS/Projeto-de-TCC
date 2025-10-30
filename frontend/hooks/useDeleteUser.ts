@@ -28,7 +28,7 @@ export function useDeleteUser() {
 
     onError: (error: any) => {
       console.error(error);
-      toast.error("Erro ao excluir conta. Tente novamente.");
+      toast.error("Erro ao excluir conta.");
     },
   });
 }

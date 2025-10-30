@@ -18,7 +18,7 @@ interface GoalDetailsProps {
 
 export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
   const queryClient = useQueryClient();
-  const { addGoalRecord } = useGoals();
+  const { addGoalRecord } = useGoals(true);
   const [amount, setAmount] = useState("0,00");
   const [editOpen, setEditOpen] = useState(false);
   const [currentGoal, setCurrentGoal] = useState(goal);
@@ -35,7 +35,7 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       onClose();
     },
-    onError: () => toast.error("Erro ao excluir a meta. Tente novamente."),
+    onError: () => toast.error("Erro ao excluir a meta."),
   });
 
   // --- Funções auxiliares (moeda) ---
@@ -103,7 +103,7 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
           type: "Adicionar",
         },
       });
-      toast.success("Valor adicionado à meta com sucesso!");
+      toast.success("Valor adicionado à meta!");
       setAmount("0,00");
       await refreshGoal();
     } catch {
@@ -128,11 +128,11 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
           type: "Retirar",
         },
       });
-      toast.success("Valor removido da meta com sucesso!");
+      toast.success("Valor subtraído da meta.");
       setAmount("0,00");
       await refreshGoal();
     } catch {
-      toast.error("Erro ao remover valor da meta.");
+      toast.error("Erro ao subtrair valor da meta.");
     }
   }
 
@@ -143,56 +143,6 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
       100,
     100
   );
-
-  // --- Verificação automática de prazo e de alcance da meta ---
-  // --- Verificação automática de prazo e de alcance da meta ---
-  useEffect(() => {
-    const rawDeadline = currentGoal?.deadline ?? null;
-
-    if (!rawDeadline) return;
-
-    // Aceita formatos "YYYY-MM-DD" ou ISO
-    let deadlineDate: Date;
-    try {
-      deadlineDate = new Date(`${rawDeadline}T00:00:00`);
-      deadlineDate.setHours(0, 0, 0, 0);
-    } catch {
-      return;
-    }
-
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
-    const diffMs = deadlineDate.getTime() - now.getTime();
-    const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (daysLeft <= 0) {
-      if (!notifiedRef.current.deadlineReached) {
-        notifiedRef.current.deadlineReached = true;
-
-        const reached =
-          Number(currentGoal?.current_value || 0) >=
-          Number(currentGoal?.target_value || 0);
-
-        if (reached) {
-          toast.success(
-            `A meta "${currentGoal.title}" foi alcançada até a data limite 🎉`
-          );
-        } else {
-          toast.error(
-            `A data limite da meta "${currentGoal.title}" foi alcançada e a meta não foi atingida.`
-          );
-        }
-      }
-    } else if (daysLeft <= 3) {
-      if (!notifiedRef.current.deadlineWarning) {
-        notifiedRef.current.deadlineWarning = true;
-        toast.warning(
-          `A data limite da meta "${currentGoal.title}" está próxima: faltam ${daysLeft} dia(s).`
-        );
-      }
-    }
-  }, [currentGoal]);
 
   return (
     <>

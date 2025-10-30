@@ -76,7 +76,7 @@ export default function ProfilePage() {
     }
 
     if (newPassword.length < 8) {
-      toast.error("A nova senha deve ter pelo menos 8 caracteres.");
+      toast.error("A senha deve ter no mínimo 8 caracteres.");
       return;
     }
 
@@ -103,26 +103,21 @@ export default function ProfilePage() {
         ) {
           toast.error("Senha atual incorreta.");
         } else {
-          toast.error("Erro ao alterar a senha. Tente novamente mais tarde.");
+          toast.error("Erro ao alterar a senha.");
         }
-        return;
-      }
-
-      if (!data) {
-        toast.error("Erro inesperado. Nenhum dado retornado.");
         return;
       }
 
       setCurrentPassword("");
       setNewPassword("");
-      toast.success("Senha alterada com sucesso!");
+      toast.success("Senha redefinida.");
     } catch (err: any) {
       console.error(err);
       const message = err?.message?.toLowerCase() || "";
       if (message.includes("invalid password")) {
         toast.error("Senha atual incorreta.");
       } else {
-        toast.error("Erro ao alterar a senha. Tente novamente mais tarde.");
+        toast.error("Erro ao alterar a senha.");
       }
     } finally {
       setIsChangingPassword(false);

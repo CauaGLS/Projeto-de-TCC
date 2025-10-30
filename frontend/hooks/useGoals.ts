@@ -9,7 +9,7 @@ export function useGoals(userExists: boolean) { // <-- recebe o parâmetro
   const listGoals = useQuery({
     queryKey: ["goals"],
     queryFn: () => Finances.listGoals(),
-    enabled: userExists, // 🔥 agora userExists existe aqui
+    enabled: userExists,
   });
 
   const createGoal = useMutation({
