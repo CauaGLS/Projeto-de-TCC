@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 
 // cores
 const COLORS = {
@@ -84,8 +85,8 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function FinanceChart() {
-  const { data: finances = [] } = useFinances()
-  const { spendingLimit } = useSpendingLimit()
+  const { data: finances = [] } = useFinances(true)
+  const { spendingLimit } = useSpendingLimit(true)
   const [view, setView] = React.useState("3m") // padrão = últimos 3 meses
 
   const selectedLabel = VIEW_LABELS[view]
@@ -176,10 +177,20 @@ export function FinanceChart() {
 
   const chartData = Object.values(grouped)
 
-  // resumo
   const totalReceita = chartData.reduce((acc, d) => acc + d.receita, 0)
   const totalDespesa = chartData.reduce((acc, d) => acc + d.despesa, 0)
   const percLimite = limite ? ((totalDespesa / limite) * 100).toFixed(1) : null
+
+React.useEffect(() => {
+  if (!limite) return
+  const percentual = (totalDespesa / limite) * 100
+
+  if (percentual >= 100) {
+    toast.error("Limite de gastos atingido!")
+  } else if (percentual >= 70) {
+    toast.warning("Você está próximo do limite de gastos!")
+  }
+}, [totalDespesa, limite])
 
   return (
     <Card>

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Finances } from "@/services";
 
-export function useGoals(userExists: boolean) { // <-- recebe o parâmetro
+export function useGoals(userExists: boolean) {
   const queryClient = useQueryClient();
 
   const listGoals = useQuery({

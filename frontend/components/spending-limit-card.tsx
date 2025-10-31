@@ -9,8 +9,7 @@ import { useSpendingLimit } from "@/hooks/useSpendingLimit"
 import { Trash2 } from "lucide-react"
 
 export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
-  const { spendingLimit, setSpendingLimit, isSaving, deleteSpendingLimit, isDeleting } =
-    useSpendingLimit()
+  const { spendingLimit, setSpendingLimit, isSaving, deleteSpendingLimit, isDeleting } = useSpendingLimit(true)
 
   const [displayValue, setDisplayValue] = useState("")
   const [numericValue, setNumericValue] = useState<number | null>(null)
@@ -21,17 +20,13 @@ export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
       setNumericValue(val)
       setDisplayValue(formatCurrency(val))
     } else {
-      // sem limite → campo vazio
       setNumericValue(null)
       setDisplayValue("")
     }
   }, [spendingLimit])
 
   function formatCurrency(value: number): string {
-    return new Intl.NumberFormat("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
+    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
   }
 
   function parseCurrency(value: string): number {
@@ -101,6 +96,7 @@ export function SpendingLimitCard({ onClose }: { onClose: () => void }) {
               )}
             </div>
           </div>
+
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isSaving} className="flex-1">
               {isSaving ? "Salvando..." : "Salvar"}

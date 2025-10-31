@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2, Paperclip, Download } from "lucide-react";
 import { useFinanceAttachments } from "@/hooks/useFinanceAttachments";
+import { toast } from "sonner";
 
 interface FinanceAttachmentCardProps {
   financeId: number;
@@ -27,6 +28,7 @@ export function FinanceAttachmentCard({
     useFinanceAttachments(financeId);
   const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
   // reset local state when dialog opens/closes or when attachments change
   useEffect(() => {
@@ -51,11 +53,22 @@ export function FinanceAttachmentCard({
   }
 
   async function handleConfirm() {
-    if (!file) return;
-    // mutate via hook (assume signature uploadAttachment(file, options))
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande! Máximo 10MB.");
+      return;
+    }
+
     uploadAttachment(file, {
       onSuccess: () => {
+        toast.success("Arquivo anexado.");
         onClose();
+      },
+      onError: () => {
+        toast.error("Erro ao anexar arquivo.");
       },
     });
   }
@@ -92,7 +105,13 @@ export function FinanceAttachmentCard({
                   type="button"
                   variant="destructive"
                   size="icon"
-                  onClick={() => deleteAttachment(attachments[0].id)}
+                  onClick={() => {
+                    deleteAttachment(attachments[0].id, {
+                      onSuccess: () =>
+                        toast.success("Anexo removido."),
+                      onError: () => toast.error("Erro ao remover o anexo."),
+                    });
+                  }}
                   title="Remover anexo"
                 >
                   <Trash2 className="h-4 w-4" />

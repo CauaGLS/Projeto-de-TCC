@@ -1,64 +1,104 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon, FileDown } from "lucide-react"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
-import * as XLSX from "xlsx"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, FileDown } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 export function ExportFinanceCard({
   onClose,
   data,
 }: {
-  onClose: () => void
-  data: any[]
+  onClose: () => void;
+  data: any[];
 }) {
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined)
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined)
-  const [formatType, setFormatType] = useState<"pdf" | "excel">("pdf")
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [formatType, setFormatType] = useState<"pdf" | "excel">("pdf");
 
   // filtra registros por intervalo
   function getFiltered() {
     return data.filter((f) => {
-      const date = f.payment_date ? new Date(f.payment_date) : f.due_date ? new Date(f.due_date) : null
-      if (!date) return false
-      if (startDate && date < startDate) return false
-      if (endDate && date > endDate) return false
-      return true
-    })
+      const date = f.payment_date
+        ? new Date(f.payment_date)
+        : f.due_date
+          ? new Date(f.due_date)
+          : null;
+      if (!date) return false;
+      if (startDate && date < startDate) return false;
+      if (endDate && date > endDate) return false;
+      return true;
+    });
   }
 
   function handleExport() {
-    const filtered = getFiltered()
-    if (!filtered.length) {
-      alert("Nenhum registro encontrado para o período selecionado.")
-      return
+    // valida campos
+    if (!startDate || !endDate) {
+      toast.error("Selecione a data de início e fim.");
+      return;
     }
 
-    if (formatType === "pdf") {
-      generatePDF(filtered)
-    } else {
-      generateExcel(filtered)
+    if (startDate > endDate) {
+      toast.error("A data de início não pode ser maior que a data fim.");
+      return;
+    }
+
+    const filtered = getFiltered();
+    if (!filtered.length) {
+      toast.error("Nenhum registro encontrado para o período selecionado.");
+      return;
+    }
+
+    try {
+      if (formatType === "pdf") {
+        generatePDF(filtered);
+      } else {
+        generateExcel(filtered);
+      }
+      toast.success("Exportação realizada com sucesso!");
+    } catch (err) {
+      toast.error("Erro ao exportar os registros.");
     }
   }
 
   // ---------------- PDF ----------------
   function generatePDF(records: any[]) {
-    const doc = new jsPDF()
+    const doc = new jsPDF();
 
-    doc.setFontSize(14)
-    doc.text("Histórico de Registros Financeiros", 14, 20)
+    doc.setFontSize(14);
+    doc.text("Histórico de Registros Financeiros", 14, 20);
 
     autoTable(doc, {
       startY: 30,
-      head: [["Título", "Tipo", "Status", "Categoria", "Valor (R$)", "Vencimento", "Pagamento"]],
+      head: [
+        [
+          "Título",
+          "Tipo",
+          "Status",
+          "Categoria",
+          "Valor (R$)",
+          "Vencimento",
+          "Pagamento",
+        ],
+      ],
       body: records.map((r) => [
         r.title,
         r.type,
@@ -70,9 +110,9 @@ export function ExportFinanceCard({
       ]),
       styles: { fontSize: 10 },
       headStyles: { fillColor: [41, 128, 185] },
-    })
+    });
 
-    doc.save("registros.pdf")
+    doc.save("registros.pdf");
   }
 
   // ---------------- Excel ----------------
@@ -84,14 +124,18 @@ export function ExportFinanceCard({
         Status: r.status,
         Categoria: r.category || "-",
         "Valor (R$)": Number(r.value).toFixed(2),
-        "Data Vencimento": r.due_date ? format(new Date(r.due_date), "dd/MM/yyyy") : "-",
-        "Data Pagamento": r.payment_date ? format(new Date(r.payment_date), "dd/MM/yyyy") : "-",
+        "Data Vencimento": r.due_date
+          ? format(new Date(r.due_date), "dd/MM/yyyy")
+          : "-",
+        "Data Pagamento": r.payment_date
+          ? format(new Date(r.payment_date), "dd/MM/yyyy")
+          : "-",
       }))
-    )
+    );
 
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros")
-    XLSX.writeFile(workbook, "registros.xlsx")
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros");
+    XLSX.writeFile(workbook, "registros.xlsx");
   }
 
   return (
@@ -110,11 +154,18 @@ export function ExportFinanceCard({
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="justify-start">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
+                    {startDate
+                      ? format(startDate, "dd/MM/yyyy", { locale: ptBR })
+                      : "Selecione"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent>
-                  <Calendar mode="single" required={false} selected={startDate ?? undefined} onSelect={setStartDate} />
+                  <Calendar
+                    mode="single"
+                    required={false}
+                    selected={startDate ?? undefined}
+                    onSelect={setStartDate}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -125,11 +176,18 @@ export function ExportFinanceCard({
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="justify-start">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
+                    {endDate
+                      ? format(endDate, "dd/MM/yyyy", { locale: ptBR })
+                      : "Selecione"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent>
-                  <Calendar mode="single" required={false} selected={endDate ?? undefined} onSelect={setEndDate} />
+                  <Calendar
+                    mode="single"
+                    required={false}
+                    selected={endDate ?? undefined}
+                    onSelect={setEndDate}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -166,5 +224,5 @@ export function ExportFinanceCard({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

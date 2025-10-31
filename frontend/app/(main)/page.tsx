@@ -18,7 +18,7 @@ import type { FinanceSchema as ApiFinance } from "@/services/types.gen";
 type FinanceRow = z.infer<typeof schema>;
 
 export default function Page() {
-  const { data, isLoading, isError } = useFinances();
+  const { data, isLoading, isError } = useFinances(true);
   const { mutate: deleteFinance } = useDeleteFinance();
   const { showCreate, setShowCreate } = useFinanceCreate();
   const [editing, setEditing] = useState<ApiFinance | null>(null);
