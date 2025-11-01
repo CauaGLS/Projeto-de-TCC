@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "./ui/sonner"
 import { useGoalNotifications } from "@/hooks/useGoalNotifications"
+import { useFinanceNotifications } from "@/hooks/useFinanceNotifications"
 import { useSession } from "@/lib/auth-client"
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <GoalNotificationWrapper queryClient={queryClient} />
+      <FinanceNotificationWrapper queryClient={queryClient} />
       {children}
       <Toaster position="top-right" />
     </QueryClientProvider>
@@ -29,5 +31,19 @@ export function GoalNotificationWrapper({ queryClient }: { queryClient: QueryCli
   }, [userExists, queryClient])
 
   useGoalNotifications(userExists)
+  return null
+}
+
+export function FinanceNotificationWrapper({ queryClient }: { queryClient: QueryClient }) {
+  const { data } = useSession()
+  const userExists = !!data?.user
+
+  useEffect(() => {
+    if (!userExists) {
+      queryClient.clear()
+    }
+  }, [userExists, queryClient])
+
+  useFinanceNotifications(userExists)
   return null
 }
