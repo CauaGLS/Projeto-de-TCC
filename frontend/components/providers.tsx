@@ -6,16 +6,19 @@ import { Toaster } from "./ui/sonner"
 import { useGoalNotifications } from "@/hooks/useGoalNotifications"
 import { useFinanceNotifications } from "@/hooks/useFinanceNotifications"
 import { useSession } from "@/lib/auth-client"
+import { FinanceCreateProvider } from "@/hooks/useFinanceCreate"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GoalNotificationWrapper queryClient={queryClient} />
-      <FinanceNotificationWrapper queryClient={queryClient} />
-      {children}
-      <Toaster position="top-right" />
+      <FinanceCreateProvider> {/* 👈 envolve toda a aplicação */}
+        <GoalNotificationWrapper queryClient={queryClient} />
+        <FinanceNotificationWrapper queryClient={queryClient} />
+        {children}
+        <Toaster position="top-right" />
+      </FinanceCreateProvider>
     </QueryClientProvider>
   )
 }
@@ -25,9 +28,7 @@ export function GoalNotificationWrapper({ queryClient }: { queryClient: QueryCli
   const userExists = !!data?.user
 
   useEffect(() => {
-    if (!userExists) {
-      queryClient.clear()
-    }
+    if (!userExists) queryClient.clear()
   }, [userExists, queryClient])
 
   useGoalNotifications(userExists)
@@ -39,9 +40,7 @@ export function FinanceNotificationWrapper({ queryClient }: { queryClient: Query
   const userExists = !!data?.user
 
   useEffect(() => {
-    if (!userExists) {
-      queryClient.clear()
-    }
+    if (!userExists) queryClient.clear()
   }, [userExists, queryClient])
 
   useFinanceNotifications(userExists)
