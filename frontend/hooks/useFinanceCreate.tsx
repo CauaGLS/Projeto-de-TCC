@@ -1,25 +1,29 @@
 "use client"
-import { createContext, useContext, useState, ReactNode } from "react"
+
+import { createContext, useContext, useState } from "react"
+import { FinanceCreateCard } from "@/components/finance-create-card"
 
 type FinanceCreateContextType = {
   showCreate: boolean
-  setShowCreate: (value: boolean) => void
+  setShowCreate: (v: boolean) => void
 }
 
-const FinanceCreateContext = createContext<FinanceCreateContextType | undefined>(undefined)
+const FinanceCreateContext = createContext<FinanceCreateContextType>({
+  showCreate: false,
+  setShowCreate: () => {},
+})
 
-export function FinanceCreateProvider({ children }: { children: ReactNode }) {
+export function FinanceCreateProvider({ children }: { children: React.ReactNode }) {
   const [showCreate, setShowCreate] = useState(false)
 
   return (
     <FinanceCreateContext.Provider value={{ showCreate, setShowCreate }}>
       {children}
+      {showCreate && <FinanceCreateCard onClose={() => setShowCreate(false)} />}
     </FinanceCreateContext.Provider>
   )
 }
 
 export function useFinanceCreate() {
-  const ctx = useContext(FinanceCreateContext)
-  if (!ctx) throw new Error("useFinanceCreate deve ser usado dentro de FinanceCreateProvider")
-  return ctx
+  return useContext(FinanceCreateContext)
 }
