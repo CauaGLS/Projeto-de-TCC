@@ -1,0 +1,46 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec)
+# Deploy: no dashboard do Render, "New +" > "Blueprint", aponte para este
+# repositório e selecione o diretório "backend" como root do serviço.
+databases:
+  - name: financas-db
+    plan: free
+    databaseName: financas
+    user: financas
+
+services:
+  - type: web
+    name: financas-backend
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn core.wsgi --log-file -"
+    envVars:
+      # Preenchida automaticamente pelo Render com a URL de conexão do banco
+      # criado acima (host, porta, usuário, senha e nome do banco).
+      - key: DATABASE_URL
+        fromDatabase:
+          name: financas-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_ENDPOINT_URL
+        sync: false
+      - key: AWS_S3_SIGNATURE_VERSION
+        value: "s3v4"
+      - key: PYTHON_VERSION
+        value: "3.13.7"

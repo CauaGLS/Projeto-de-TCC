@@ -1,0 +1,28 @@
+# Framework web e API
+Django>=5.2,<6.0
+# IMPORTANTE: o app usa a API antiga de ModelSchema (`class Config: model = ...`),
+# removida a partir do django-ninja 1.5. Não atualize além de 1.4.x sem migrar
+# app/schemas.py para a sintaxe `class Meta`.
+django-ninja==1.4.5
+
+# CORS/CSRF entre o frontend (Vercel) e a API (Render)
+django-cors-headers==4.9.0
+
+# Servidor de aplicação WSGI para produção
+gunicorn==26.2.0
+
+# Driver Postgres
+psycopg2-binary==2.9.12
+
+# DATABASE_URL única (Render) convertida para o dict DATABASES do Django
+dj-database-url==3.1.2
+
+# Arquivos estáticos (admin) servidos direto pelo gunicorn no Render
+whitenoise==6.12.0
+
+# Variáveis de ambiente a partir de um arquivo .env em dev local
+python-dotenv==1.2.3
+
+# Armazenamento de anexos/fotos em S3/MinIO
+django-storages==1.14.6
+boto3==1.43.83
