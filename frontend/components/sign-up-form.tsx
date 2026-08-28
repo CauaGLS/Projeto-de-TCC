@@ -49,9 +49,9 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
       toast.success("Usuário cadastrado com sucesso!"); // MSG004
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
-      const msg = err?.message || "Erro ao criar conta";
+      const msg = err instanceof Error ? err.message : "Erro ao criar conta";
       setError(msg);
       toast.error(msg);
     }

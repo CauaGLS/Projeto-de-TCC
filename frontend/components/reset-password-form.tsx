@@ -53,9 +53,9 @@ export function ResetPasswordForm() {
 
       toast.success("Senha redefinida.") // MSG011
       router.push("/sign-in")
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false)
-      const msg = err?.message || "Erro ao redefinir senha."
+      const msg = err instanceof Error ? err.message : "Erro ao redefinir senha."
       setError(msg)
       toast.error(msg)
     }

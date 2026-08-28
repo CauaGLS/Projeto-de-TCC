@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Finances } from "@/services"
+import { Finances, type GoalSchema } from "@/services"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { GoalCard } from "@/components/goal-card"
@@ -13,7 +13,7 @@ export default function GoalsPage() {
   const queryClient = useQueryClient()
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [selectedGoal, setSelectedGoal] = useState<any | null>(null)
+  const [selectedGoal, setSelectedGoal] = useState<GoalSchema | null>(null)
 
   // --- Buscar lista de metas ---
   const { data: goals, isLoading } = useQuery({
@@ -51,7 +51,7 @@ export default function GoalsPage() {
         <p>Carregando metas...</p>
       ) : goals && goals.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {goals.map((goal: any) => (
+          {goals.map((goal: GoalSchema) => (
             <GoalCard
               key={goal.id}
               goal={goal}

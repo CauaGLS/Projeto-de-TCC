@@ -22,13 +22,17 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { z } from "zod";
+import { schema } from "@/components/data-table";
+
+type FinanceRow = z.infer<typeof schema>;
 
 export function ExportFinanceCard({
   onClose,
   data,
 }: {
   onClose: () => void;
-  data: any[];
+  data: FinanceRow[];
 }) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -80,7 +84,7 @@ export function ExportFinanceCard({
   }
 
   // ---------------- PDF ----------------
-  function generatePDF(records: any[]) {
+  function generatePDF(records: FinanceRow[]) {
     const doc = new jsPDF();
 
     doc.setFontSize(14);
@@ -116,7 +120,7 @@ export function ExportFinanceCard({
   }
 
   // ---------------- Excel ----------------
-  function generateExcel(records: any[]) {
+  function generateExcel(records: FinanceRow[]) {
     const worksheet = XLSX.utils.json_to_sheet(
       records.map((r) => ({
         Título: r.title,

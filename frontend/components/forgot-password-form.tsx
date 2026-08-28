@@ -36,9 +36,10 @@ export function ForgotPasswordForm() {
         setMessage(ok)
         toast.success(ok)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false)
-      const msg = err?.message || "Erro ao enviar email de recuperação."
+      const msg =
+        err instanceof Error ? err.message : "Erro ao enviar email de recuperação."
       setMessage(msg)
       toast.error(msg)
     }

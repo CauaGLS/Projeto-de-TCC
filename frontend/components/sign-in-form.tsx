@@ -43,9 +43,9 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
 
       toast.success("Autenticado com sucesso!"); // custom success
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
-      const msg = err?.message || "Erro ao autenticar.";
+      const msg = err instanceof Error ? err.message : "Erro ao autenticar.";
       setError(msg);
       toast.error(msg);
     }

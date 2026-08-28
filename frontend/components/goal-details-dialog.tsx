@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Finances } from "@/services";
+import { Finances, type GoalSchema, type GoalRecordSchema } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { GoalFormDialog } from "./goal-form-dialog";
 import { useGoals } from "@/hooks/useGoals";
 
 interface GoalDetailsProps {
-  goal: any;
+  goal: GoalSchema;
   onClose: () => void;
 }
 
@@ -176,7 +176,7 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
                 Data definida:{" "}
                 {(() => {
                   // tenta suportar formatos YYYY-MM-DD ou ISO
-                  const raw = currentGoal.deadline ?? currentGoal.deadline_date;
+                  const raw = currentGoal.deadline;
                   if (!raw) return "";
                   const d = raw.split ? raw.split("-").map(Number) : null;
                   if (d && d.length === 3) {
@@ -231,7 +231,7 @@ export default function GoalDetails({ goal, onClose }: GoalDetailsProps) {
             <h3 className="font-bold mb-2">Histórico</h3>
             <ul className="max-h-48 overflow-y-auto space-y-1">
               {currentGoal.records?.length ? (
-                currentGoal.records.map((r: any) => (
+                currentGoal.records.map((r: GoalRecordSchema) => (
                   <li
                     key={r.id}
                     className="flex justify-between text-sm font-medium"

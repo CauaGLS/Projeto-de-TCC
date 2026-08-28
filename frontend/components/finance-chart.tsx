@@ -10,7 +10,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  type TooltipProps,
 } from "recharts"
+import type { Payload } from "recharts/types/component/DefaultTooltipContent"
 import { AlertTriangle, HelpCircle } from "lucide-react"
 import {
   parseISO,
@@ -56,14 +58,14 @@ const VIEW_LABELS: Record<string, string> = {
 }
 
 // tooltip customizado do gráfico
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload) return null
 
   return (
     <div className="rounded-md border bg-white px-3 py-2 shadow">
       <p className="text-sm font-medium">{label}</p>
-      {payload.map((entry: any, idx: number) => {
-        const value = entry.value
+      {payload.map((entry: Payload<number, string>, idx: number) => {
+        const value = entry.value ?? 0
         const showAlert =
           entry.dataKey === "despesa" && value >= entry.payload.limite
 

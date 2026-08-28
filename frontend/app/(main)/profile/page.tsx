@@ -90,10 +90,15 @@ export default function ProfilePage() {
       });
 
       if (error) {
+        const authError = error as {
+          code?: string;
+          message?: string;
+          response?: { data?: { code?: string } };
+        };
         const code =
-          (error as any)?.response?.data?.code ||
-          (error as any)?.code ||
-          (error as any)?.message;
+          authError.response?.data?.code ||
+          authError.code ||
+          authError.message;
 
         if (
           code === "INVALID_PASSWORD" ||
@@ -111,9 +116,10 @@ export default function ProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       toast.success("Senha redefinida.");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const message = err?.message?.toLowerCase() || "";
+      const message =
+        (err instanceof Error ? err.message : "").toLowerCase();
       if (message.includes("invalid password")) {
         toast.error("Senha atual incorreta.");
       } else {
