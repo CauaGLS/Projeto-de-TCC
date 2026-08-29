@@ -31,6 +31,9 @@ export const auth = betterAuth({
     user: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
+    ssl: process.env.POSTGRES_HOST && process.env.POSTGRES_HOST !== "localhost"
+      ? { rejectUnauthorized: false }
+      : undefined,
   }),
   user: {
     modelName: "users",
