@@ -16,9 +16,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://projeto-de-tcc-caua.vercel.app";
+const description = "Sistema de controle financeiro pessoal e familiar";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Projeto de TCC",
-  description: "Sistema de controle financeiro pessoal e familiar",
+  description,
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    siteName: "Projeto de TCC",
+    title: "Projeto de TCC",
+    description,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 627,
+        alt: "Projeto de TCC — sistema de controle financeiro pessoal e familiar",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Projeto de TCC",
+    description,
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function RootLayout({
